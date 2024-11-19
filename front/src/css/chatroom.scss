@@ -1,0 +1,96 @@
+.chatroom {
+    width: 100%;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    background: var(--secondary-color);
+    
+    .messages {
+        flex: 1;
+        width: 100%;
+        padding: 0px 12px;
+        overflow-y: scroll;
+
+        // hide scroll bar
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 12px;
+
+            &:first-of-type {
+                margin-top: 12px;
+            }
+
+            &:last-of-type {
+                margin-bottom: 24px;
+            }
+
+
+            &.right {
+                justify-content: end;
+                flex-direction: row-reverse;
+            }
+
+            .content {
+                margin: 0px 6px;
+                display: block;
+                width: fit-content;
+                max-width: 300px;
+                padding: 12px;
+                border-radius: 12px;
+                background: var(--forth-color);
+                word-wrap: break-word;
+
+                span {
+                    display: block;
+                    width: 100%;
+                    text-align: end;
+                    margin-top: 6px;            
+                    color: var(--text-color-light);
+                    font-size: 10px;
+                }
+
+                button {
+                    margin: 5px;
+                }
+            }
+
+        }
+    }
+
+    .form-container {
+        display: flex;
+        width: 100%;
+        padding: 6px;
+        background: var(--secondary-color);
+        border-radius: 12px;
+
+        .bottom-bar {
+            width: 100%;
+            display: flex;
+            
+            .form {
+                width: 100%;
+                display: flex;
+                margin-right: 18px;
+                
+                label {
+                    flex: 1;
+                    
+                    input {
+                        display: block;
+                        width: 100%;
+                        margin-right: 12px;
+                    }
+                }
+            }
+        }
+    }
+}

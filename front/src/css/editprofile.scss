@@ -1,0 +1,14 @@
+.edit {
+    height: 90vh;
+    border-radius: 12px;
+    background: var(--secondary-color);
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    form {
+        width: 100%;
+        max-width: 600px;
+    }
+}

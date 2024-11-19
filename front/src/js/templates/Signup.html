@@ -1,0 +1,32 @@
+<div class="min-vh-100 d-flex flex-column align-items-center justify-content-center">
+    <div class="container py-2xl px-xl">
+        <div>
+            <p class="text-xl mb-2xs">Hello,</p>
+            <p class="text-md mb-xl">We are happy to see you</p>
+        </div>
+        
+        <form ref="form" action="POST">    
+            <div class="input mb-md">
+                <input id="username" placeholder="Username" type="text" autocomplete="off" required="True" />
+            </div>
+            
+            <div class="input mb-md">
+                <input id="email" placeholder="Email" type="email" autocomplete="off" required="True" />
+            </div>
+            
+            <div class="input mb-md">
+                <input id="password" placeholder="Password" type="password" autocomplete="off" required="True" />
+            </div>
+
+            <div class="input mb-md">
+                <input id="passwordConfirmation" placeholder="Password confirmation" type="password" autocomplete="off" required="True" />
+            </div>
+
+            <button type="submit" class="button w-100 mb-xl">Sign up</button>
+        </form>
+        
+        <span class="d-flex justify-content-center">
+            <p>Already have an account? <a href="/login/" data-link="">Login</a></p>
+        </span>
+    </div>
+</div>

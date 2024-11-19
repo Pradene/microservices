@@ -1,0 +1,46 @@
+// Text
+$sizes: (
+  "2xs": 0.25rem,
+  "xs": 0.5rem,
+  "sm": 0.75rem,
+  "md": 1rem,
+  "lg": 1.25rem,
+  "xl": 1.5rem,
+  "2xl": 2rem,
+  "3xl": 3rem,
+  "4xl": 4rem,
+);
+
+// Mixin to create classes
+@mixin text-size-utility($sizes) {
+    @each $size, $value in $sizes {
+        .text-#{$size} {
+            font-size: $value;
+        }
+
+        .mt-#{$size} {
+            margin-top: $value;
+        }
+
+        .mb-#{$size} {
+            margin-bottom: $value;
+        }
+
+        .p-#{$size} {
+            padding: $value;
+        }
+
+        .py-#{$size} {
+            padding-top: $value;
+            padding-bottom: $value;
+        }
+
+        .px-#{$size} {
+            padding-left: $value;
+            padding-right: $value;
+        }
+    }
+}
+
+// Include the mixin
+@include text-size-utility($sizes);

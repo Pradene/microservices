@@ -1,0 +1,41 @@
+.otp-label {
+    margin: auto;
+    display: flex;
+    gap: 4px;
+}
+
+.otp-box {
+	display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 30px;
+	height: 40px;
+	border-radius: 0.5rem;
+    background: var(--forth-color);
+}
+
+.otp-box.active {
+    background: var(--third-color);
+}
+
+.secret-input {
+	background: var(--secondary-color);
+    outline: none;
+	border: none;
+	width: 0px;
+	height: 0px;
+    caret: hidden;
+}
+
+@keyframes shake {
+	0% { transform: translateX(0); }
+	25% { transform: translateX(-5px); }
+	50% { transform: translateX(5px); }
+	75% { transform: translateX(-5px); }
+	100% { transform: translateX(0); }
+  }
+  
+.shake {
+	animation: shake 0.3s ease;
+}

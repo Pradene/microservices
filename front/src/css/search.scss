@@ -1,0 +1,116 @@
+.social {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    height: 90vh;
+    width: 100%;
+    gap: 12px;
+
+    & > div {
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        background: var(--secondary-color);
+
+        .top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            height: 48px;
+        }
+
+        .content {
+            margin: 0px 6px;
+            border-radius: 12px;
+            flex: 1;
+            overflow-y: scroll;
+
+            // hide scroll bar
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+
+            &::-webkit-scrollbar {
+                display: none;
+            }
+
+            .user {
+                border-radius: 12px;
+                padding: 12px;
+
+                &:hover {
+                    background: var(--third-color);
+                }
+
+                .link {
+                    display: flex;
+                    align-items: center;
+
+                    .name {
+                        display: block;
+                        margin-left: 12px;
+                    }                
+                }
+            }
+        }
+    }
+
+    .friends {
+        grid-row: span 1;
+    }
+
+    .requests {
+        grid-row: span 1;
+    }
+    
+    .search {
+        grid-row: span 2;
+    }
+}
+
+.request {
+    border-radius: 12px;
+    padding: 12px;
+
+    &:hover {
+        background: var(--third-color);
+    }
+
+    .link {
+        display: flex;
+        align-items: center;
+
+        .name {
+            flex: 1;
+            display: block;
+            margin-left: 12px;
+        }
+
+        button {
+            margin-left: 6px;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .social {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+
+
+    .friends {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .requests {
+        grid-column: 1;
+        grid-row: auto;
+    }
+    
+    .search {
+        grid-column: 1;
+        grid-row: auto;
+    }
+}

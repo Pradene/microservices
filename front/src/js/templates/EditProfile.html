@@ -1,0 +1,26 @@
+<nav-component></nav-component>
+<div class="edit">
+    <form id="form" action="PUT">
+        <div class="d-flex flex-column align-items-center mb-4">
+            <div class="profile-picture-large mb-2">
+                <img id="picture-preview" alt="Profile picture" />
+            </div>
+            <div class="button">
+                <label for="file-upload"  class="form-label text-white m-1">Change picture</label>
+                <input id="file-upload" class="form-control d-none" type="file" />
+            </div>
+        </div>
+        
+        <div class="input mb-md">
+            <input id="username" class="w-100" type="text" placeholder="Username" autocomplete="off" required="True" />
+        </div>
+
+        <div class="input mb-md">
+            <input id="email" class="w-100" type="email" placeholder="Email" autocomplete="off" required="True" />
+        </div>
+        <label for="is_2fa_enabled" class="mb-1">Enable 2FA</label>
+        <input id="is_2fa_enabled" type="checkbox" name="/" />
+
+        <button type="submit" class="w-100 button">Edit profile</button>
+    </form>
+</div>

@@ -1,0 +1,36 @@
+<div class="min-vh-100 d-flex flex-column align-items-center justify-content-center">
+    <div class="container py-2xl px-xl">
+        <div>
+            <p class="text-xl mb-2xs">Hello,</p>
+            <p class="text-md mb-xl">We are happy to see you</p>
+        </div>
+        <form ref="form" action="POST">
+            <div class="input mb-md">
+                <input id="username" placeholder="Username" type="text" autocomplete="off" required="True" />
+            </div>
+
+            <div class="input mb-md">
+                <input id="password" placeholder="Password" type="password" autocomplete="off" required="True" />
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-xl">
+                <div class="d-flex align-items-baseline">
+                    <input id="remember-me" type="checkbox" />
+                    <label for="remember-me" class="px-2xs">Remember me</label>
+                </div>
+                <a href="/" data-link="">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="button w-100 mb-xs">Login</button>
+        </form>
+
+        <span>
+            <button class="button w-100 mb-xl" ref="ft_auth" id="ft_auth">Login with 42</button>
+        </span>
+        
+        <span class="d-flex justify-content-center">
+            <p>Doesn't have account yet?</p>
+            <a href="/signup/" data-link="" class="px-2xs">Sign up</a>
+        </span>
+    </div>
+</div>

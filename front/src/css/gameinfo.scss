@@ -1,0 +1,18 @@
+.gameview {
+
+  .game-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+
+.gameview.not-found {
+  .players {
+    visibility: hidden;
+  }
+
+  .stat {
+    visibility: hidden;
+  }
+}

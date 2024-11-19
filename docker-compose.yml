@@ -1,0 +1,203 @@
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6380:6379"
+    networks:
+      - app_network
+
+
+  auth_service:
+    build:
+      context: ./back/auth_service
+    container_name: auth-service
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      DB_HOST: auth_db
+      DB_PORT: 5432
+      DB_NAME: auth_service_db
+      DB_USER: auth_service_user
+      DB_PASSWORD: password
+      SECRET_KEY: $SECRET_KEY
+      OAUTH_UID: $OAUTH_UID
+      OAUTH_SECRET: $OAUTH_SECRET
+    depends_on:
+      - redis
+      - auth_db
+    ports:
+      - '8000:8000'
+    networks:
+      - app_network
+
+  auth_db:
+    image: postgres:13
+    container_name: auth_db
+    environment:
+      POSTGRES_DB: auth_service_db
+      POSTGRES_USER: auth_service_user
+      POSTGRES_PASSWORD: password
+    networks:
+      - app_network
+  
+  
+  user_service:
+    build:
+      context: ./back/user_service
+    container_name: user-service
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      DB_HOST: user_db
+      DB_PORT: 5432
+      DB_NAME: user_service_db
+      DB_USER: user_service_user
+      DB_PASSWORD: password
+      SECRET_KEY: $SECRET_KEY
+    depends_on:
+      - redis
+      - user_db
+    ports:
+      - '8001:8000'
+    networks:
+      - app_network
+
+  user_db:
+    image: postgres:13
+    container_name: user_db
+    environment:
+      POSTGRES_DB: user_service_db
+      POSTGRES_USER: user_service_user
+      POSTGRES_PASSWORD: password
+    networks:
+      - app_network
+
+
+
+  friend_service:
+    build:
+      context: ./back/friend_service
+    container_name: friend-service
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      DB_HOST: friend_db
+      DB_PORT: 5432
+      DB_NAME: friend_service_db
+      DB_USER: friend_service_user
+      DB_PASSWORD: password
+      SECRET_KEY: $SECRET_KEY
+    depends_on:
+      - redis
+      - friend_db
+    ports:
+      - '8002:8000'
+    networks:
+      - app_network
+
+  friend_db:
+    image: postgres:13
+    container_name: friend_db
+    environment:
+      POSTGRES_DB: friend_service_db
+      POSTGRES_USER: friend_service_user
+      POSTGRES_PASSWORD: password
+    networks:
+      - app_network
+
+
+  mail_service:
+    build:
+      context: ./back/mail_service
+    container_name: mail-service
+    environment:
+      EMAIL: $EMAIL
+      EMAIL_USER: $EMAIL_USER
+      EMAIL_PASSWORD: $EMAIL_PASSWORD
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      - redis
+    ports:
+      - '8003:8000'
+    networks:
+      - app_network
+
+
+  notification_service:
+    build:
+      context: ./back/notification_service
+    container_name: notification-service
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      - redis
+    ports:
+      - '8004:8000'
+    networks:
+      - app_network
+
+
+  chat_service:
+    build:
+      context: ./back/chat_service
+    container_name: chat-service
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      DB_HOST: chat_db
+      DB_PORT: 5432
+      DB_NAME: chat_service_db
+      DB_USER: chat_service_user
+      DB_PASSWORD: password
+      SECRET_KEY: $SECRET_KEY
+    depends_on:
+      - redis
+      - chat_db
+    ports:
+      - '8005:8000'
+    networks:
+      - app_network
+
+  chat_db:
+    image: postgres:13
+    container_name: chat_db
+    environment:
+      POSTGRES_DB: chat_service_db
+      POSTGRES_USER: chat_service_user
+      POSTGRES_PASSWORD: password
+    networks:
+      - app_network
+
+  nginx:
+    build:
+      context: ./nginx
+      args:
+        HOST_HOSTNAME: $HOST_HOSTNAME
+    container_name: nginx
+    environment:
+      HOST_HOSTNAME: $HOST_HOSTNAME
+    volumes:
+      - ./front:/app
+    ports:
+      - '3000:80'
+      - '5000:443'
+    networks:
+      - app_network
+    depends_on:
+      - chat_service
+      - mail_service
+      - user_service
+      - notification_service
+
+
+  front:
+    build:
+      context: ./front
+    container_name: front
+    networks:
+      - app_network
+    volumes:
+      - ./front:/app
+
+
+
+networks:
+  app_network:
+    driver: bridge

@@ -1,0 +1,85 @@
+@import '../../node_modules/bootstrap/scss/bootstrap';
+
+@font-face {
+    font-family: 'Epilogue';
+	src: url('../fonts/Epilogue-Regular.ttf') format('truetype');
+	font-weight: 400;
+	font-style: normal;
+}
+
+@font-face {
+    font-family: 'Epilogue';
+	src: url('../fonts/Epilogue-SemiBold.ttf') format('truetype');
+	font-weight: 600;
+	font-style: normal;
+}
+
+@font-face {
+    font-family: 'Epilogue';
+	src: url('../fonts/Epilogue-Bold.ttf') format('truetype');
+	font-weight: 700;
+	font-style: normal;
+}
+
+:root {
+	--error-color: #ae3636;
+
+	--primary-color: #1e2124;
+	--secondary-color: #282b30;
+	--third-color: #36393e;
+	--forth-color: #424549;
+	--fifth-color: #7289DA;
+	--fifth-color-dark: #495b9b;
+
+	--text-color: #fafafa;
+	--text-color-light: #fafafa95;
+	--text-color-dark: #181818;
+}
+
+@import 'reset';
+@import 'list';
+@import 'nav';
+@import 'OTP';
+@import 'chatroom';
+@import 'chat';
+@import 'search';
+@import 'home';
+@import 'profile';
+@import 'editprofile';
+@import 'utils';
+@import 'game';
+@import 'gameinfo';
+@import 'registration';
+@import 'tournameview';
+@import 'loading';
+@import 'text.scss';
+
+.box-container {
+  margin: 0 auto;
+
+  background: var(--secondary-color);
+  border-radius: 18px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.container-xxs {
+  width: 100%;
+  max-width: 350px;
+}
+
+.form-container {
+  display: flex;
+  align-items: center;
+  background: #1e2124;
+}
+
+.form-control {
+  border: none;
+  border-radius: 12px;
+}
+
+.form-control:focus {
+  box-shadow: none;
+}
+

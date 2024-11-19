@@ -1,0 +1,40 @@
+.scrollable {
+    height: 100%;
+    overflow-y: scroll;
+
+    // Hide scroll bar for Firefox and IE
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+// Hide scroll bar for Chrome
+.scrollable::-webkit-scrollbar {
+    display: none;
+}
+
+.list-group {
+    border-radius: 0px !important;
+}
+
+.list-group-item {
+    border: none;
+    margin-bottom: 6px;
+    background: #1e2124;
+}
+
+.list-group-item:hover {
+    background: #36393e;
+}
+
+.list-group-item:first-child,
+.list-group-item:last-child {
+    border-radius: 6px;
+}
+
+.list-group-item:first-child {
+    margin-top: 6px;
+}
+
+.list-group-item:last-child {
+    margin-bottom: 6px;
+}

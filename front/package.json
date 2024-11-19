@@ -1,0 +1,31 @@
+{
+  "name": "front",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
+    "css-loader": "^7.1.2",
+    "process": "^0.11.10",
+    "sass": "^1.80.6",
+    "sass-loader": "^16.0.3",
+    "stream-browserify": "^3.0.0",
+    "style-loader": "^4.0.0",
+    "util": "^0.12.5",
+    "vm-browserify": "^1.1.2",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.3",
+    "jsonwebtoken": "^9.0.2",
+    "three": "^0.170.0"
+  }
+}

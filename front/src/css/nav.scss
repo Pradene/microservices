@@ -1,0 +1,36 @@
+nav {
+	width: auto;
+
+	display: flex;
+	justify-content: space-between;
+    align-items: center;
+
+    background: var(--secondary-color);
+    border-radius: 12px;
+
+    padding: 12px;
+    margin: 12px 0px;
+    
+    div {
+        display: flex;
+        align-items: center;
+        
+        a {
+            text-decoration: none;
+            margin-left: 18px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: "Metal Mania", system-ui;
+            font-style: normal;
+            
+            img {
+                width: 16px;
+                height: 16px;
+                pointer-events: none;
+            }
+        }
+    }
+}

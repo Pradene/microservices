@@ -1,0 +1,23 @@
+<div class="min-vh-100 d-flex flex-column align-items-center justify-content-center">
+	<div class="container px-4 py-4">
+		<div>
+            <p class="text-xl mb-2xs">One more step,</p>
+            <p class="text-md mb-xl">We sent you a One Time Password to the email you provided to sign up.</p>
+        </div>
+		<form ref="form" class="d-flex flex-column" action="POST">
+			<label for="input" ref="label" class="otp-label my-4">
+				<span class="otp-box"></span>
+				<span class="otp-box"></span>
+				<span class="otp-box"></span>
+				<span class="otp-box"></span>
+				<span class="otp-box"></span>
+				<span class="otp-box"></span>
+			</label>
+			<input class="secret-input mx-auto" ref="input" id="input" type="text" maxlength="6" autocomplete="one-time-code" required="True" />
+			<button type="submit" class="button mb-xl">Login</button>
+		</form>
+		<div class="text-center">
+			<p>Didn't receive code? <button id="otp-button" class="link">Resend</button></p>
+		</div>
+	</div>
+</div>
