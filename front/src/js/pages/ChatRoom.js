@@ -303,7 +303,7 @@ export class ChatRoom extends TemplateComponent {
 			const buttonContainer = document.createElement('div')
 			buttonContainer.className = 'flex'
 			
-			if (invitation.sender.id === Session.getUserID()) {
+			if (invitation.user_id === Session.getUserID()) {
 				const cancelButton = document.createElement('button')
 				cancelButton.textContent = 'Cancel'
 				cancelButton.className = 'button cancel'

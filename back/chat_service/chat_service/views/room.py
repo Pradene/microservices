@@ -8,10 +8,13 @@ from django.views import View
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 
+from itertools import chain
+from operator import itemgetter
+
 from celery.result import AsyncResult
 
 from chat_service.celery import app
-from chat_service.models import Message, Room
+from chat_service.models import Message, Room, Invitation
 from chat_service.decorators import jwt_required
 from chat_service.utils import create_jwt
 
@@ -32,10 +35,25 @@ class RoomView(View):
 			messages = Message.objects.filter(room_id=room_id).order_by('created_at')
 			messages_data = [{
 				'id': message.id,
+				'type': 'message',
 				'room_id': message.room_id,
 				'user_id': message.user_id,
 				'content': message.content,
+				'created_at': message.created_at,
 			} for message in messages]
+
+			invitations = Invitation.objects.filter(room_id=room_id).order_by('created_at')
+			invitations_data = [{
+				'id': invitation.id,
+				'type': 'invitation',
+				'room_id': invitation.room_id,
+				'user_id': invitation.user_id,
+				'status': invitation.status,
+				'created_at': invitation.created_at,
+			} for invitation in invitations]
+
+			combined_data = (list(chain(messages_data, invitations_data)))
+			sorted_messages_data = sorted(combined_data, key=itemgetter('created_at'))
 
 			users_data = []
 			for uid in room.user_ids:
@@ -50,7 +68,7 @@ class RoomView(View):
 			room_data = {
 				'id': room.id,
 				'users': users_data,
-				'messages': messages_data
+				'messages': sorted_messages_data,
 			}
 
 			return JsonResponse({'room': room_data}, status=200)
