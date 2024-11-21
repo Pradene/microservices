@@ -94,6 +94,8 @@ export class Search extends TemplateComponent {
         if (!message) return
 
         console.log(message)
+        console.log(message.user)
+        console.log(message.action)
 
         if (message.action && message.action === 'friend_request_accepted') {
             const container = document.getElementById('friends')
@@ -102,7 +104,7 @@ export class Search extends TemplateComponent {
 
         } else if (message.action && message.action === 'friend_request_received') {
             const container = document.getElementById('requests')
-            const element = this.displayRequest(message)
+            const element = this.displayRequest(message.user)
             container.appendChild(element)
         
         } else if (message.action && message.action === 'friend_removed') {
@@ -140,6 +142,8 @@ export class Search extends TemplateComponent {
             const data = await apiRequest(url)
             const requests = data.requests
 
+            console.log('requests:', requests)
+
             const container = document.getElementById('requests')
             requests.forEach(request => {
                 const element = this.displayRequest(request)
@@ -151,28 +155,29 @@ export class Search extends TemplateComponent {
         }
     }
 
-    displayRequest(request) {
+    displayRequest(user) {
+        console.log(user)
         const element = document.createElement("li")
         element.className = "request"
-        element.dataset.id = request.id
+        element.dataset.id = user.id
 
         const link = document.createElement("a")
         link.className = "link"
         link.dataset.link = ""
-        link.href = `/users/${request.id}/`
+        link.href = `/users/${user.id}/`
 
         const imgContainer = document.createElement("div")
         imgContainer.className = "profile-picture"
 
         const img = document.createElement("img")
-        img.src = request.picture
+        img.src = user.picture
 
         const status = document.createElement("span")
-        // status.className = request.user.is_active ? "online" : ""
+        // status.className = user.is_active ? "online" : ""
 
         const name = document.createElement("div")
         name.className = "name"
-        name.textContent = request.username
+        name.textContent = user.username
 
         const buttons = document.createElement('div')
 

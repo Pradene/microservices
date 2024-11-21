@@ -1,6 +1,7 @@
 import logging
 import asyncio
 
+from django.core.cache import cache
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
@@ -12,7 +13,16 @@ logger = logging.getLogger(__name__)
 @app.task(queue='chat_queue')
 def create_chat(user_ids, is_private):
 	try:
-		logger.info(f'creating room')
+		logger.info(f'creating room for {user_ids}')
+
+		if isinstance(user_ids, list):
+			# Optionally, ensure all elements in the list are integers
+			user_ids = [int(user_id) for user_id in user_ids if isinstance(user_id, int)]
+		else:
+			# Handle the case where user_ids is not a list
+			logger.info('user ids is not a list')
+			user_ids = []
+
 		room = Room.objects.create(
 			is_private=is_private,
 			user_ids=user_ids
@@ -30,20 +40,14 @@ def create_chat(user_ids, is_private):
 
 		group_name = f'chat_{room.id}'
 		for user_id in user_ids:
-			async_to_sync(channel_layer.group_add)(
-				group_name,
-				f'chat_user_{user_id}'
-			)
-
-		message = f'Room {room.id} have been created'
-		async_to_sync(channel_layer.group_send)(
-			group_name,
-			{
-				'type': 'room_created',
-				'message': message
-			}
-		)
-
+			logger.info(f'Adding user {user_id} to group {group_name}')
+			channel_name = cache.get(f'user{user_id}_chat_wschannel')
+			if channel_name:
+				logger.info(f'channel_name of user {user_id} : {channel_name}')
+				async_to_sync(channel_layer.group_add)(
+					group_name,
+					channel_name
+				)
 
 		return f'Task completed'
 

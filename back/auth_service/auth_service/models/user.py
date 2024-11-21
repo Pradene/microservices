@@ -3,7 +3,7 @@ from django.db import models
 
 class CustomUser(AbstractUser):
 	username = models.CharField(max_length=32, unique=True)
-	email = models.EmailField(max_length=255)
+	email = models.EmailField(max_length=255, unique=True)
 	id_42 = models.CharField(max_length=255, unique=True, null=True, blank=True)
 	is_2fa_enabled = models.BooleanField(default=False)
 	is_staff = models.BooleanField(default=False)

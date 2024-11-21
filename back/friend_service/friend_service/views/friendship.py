@@ -30,7 +30,11 @@ class FriendshipStatusView(View):
 			)).first()
 
 			if friendship:
-				return JsonResponse({'status': friendship.status}, status=200)
+				status = friendship.status
+				if friendship.status == 'pending' and friendship.user_id == user_id:
+					status = 'sent'
+
+				return JsonResponse({'status': status}, status=200)
 			else:
 				return JsonResponse({'status': 'none'}, status=200)
 

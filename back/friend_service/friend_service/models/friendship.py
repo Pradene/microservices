@@ -1,8 +1,8 @@
 from django.db import models
 
 class Friendship(models.Model):
-	user_id = models.PositiveBigIntegerField()
-	friend_id = models.PositiveBigIntegerField()
+	user_id = models.IntegerField()
+	friend_id = models.IntegerField()
 
 	STATUS_CHOICES = [
 		('pending', 'Pending'),

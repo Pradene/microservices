@@ -28,13 +28,13 @@ class FriendButton extends HTMLElement {
     }
 
     updateButtonLabel() {
-        switch (this._status) {
-            case 'friend':
+        switch (this.status) {
+            case 'accepted':
                 this._button.textContent = 'Remove friend'
                 break
-            // case 'pending':
-            //     this._button.textContent = 'Cancel'
-            //     break
+            case 'sent':
+                this._button.textContent = 'Cancel'
+                break
             case 'pending':
                 this._button.textContent = 'Accept'
                 break
@@ -59,17 +59,17 @@ class FriendButton extends HTMLElement {
 
     handleClick() {
         switch (this.status) {
-            case 'friend':
+            case 'accepted':
                 // Handle unfriending
                 this.removeFriend()
                 this.status = 'none'
                 break
-            case 'request_received':
+            case 'pending':
                 // Handle accepting the request
                 this.acceptIncomingFriendRequest()
                 this.status = 'friend'
                 break
-            case 'request_sent':
+            case 'sent':
                 // Handle canceling the request
                 this.cancelFriendRequest()
                 this.status = 'none'
@@ -77,7 +77,7 @@ class FriendButton extends HTMLElement {
             case 'none':
                 // Handle sending a new friend request
                 this.sendFriendRequest()
-                this.status = 'request_sent'
+                this.status = 'sent'
                 break
             default:
                 this.sendFriendRequest()
@@ -92,15 +92,15 @@ class FriendButton extends HTMLElement {
         if (!message || !message.action) return 
 
         if (message.action === 'friend_request_received') {
-            this._status = 'request_received'
+            this.status = 'pending'
         } else if (message.action === 'friend_request_accepted') {
-            this._status = 'friend'
+            this.status = 'accepted'
         } else if (message.action === 'friend_request_declined') {
-            this._status = 'none'
+            this.status = 'none'
         } else if (message.action === 'friend_request_cancelled') {
-            this._status = 'none'
+            this.status = 'none'
         } else if (message.action === 'friend_removed') {
-            this._status = 'none'
+            this.status = 'none'
         }
     }
 

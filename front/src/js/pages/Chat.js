@@ -29,7 +29,10 @@ export class Chat extends TemplateComponent {
     async getRooms() {
         try {
             const url = getURL('api/chat/rooms/')
-            const rooms = await apiRequest(url)
+            const data = await apiRequest(url)
+
+            console.log(data)
+            const rooms = data.rooms
 
             const container = this.getRef('rooms')
             rooms.forEach(async (room) => {

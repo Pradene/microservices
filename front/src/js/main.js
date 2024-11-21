@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchCSRFToken()
 
     if (await checkLogin()) {
+        console.log('connected')
         connectChatSocket()
         connectFriendsSocket()
 

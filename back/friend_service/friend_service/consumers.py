@@ -28,7 +28,7 @@ class FriendsConsumer(AsyncWebsocketConsumer):
 		self.user_id = self.scope.get("user_id")
 		logger.info(f'User {self.user_id} try to connect to friend consumer')
 
-		if self.user_id:
+		if self.user_id is not None:
 			self.user = await self.get_user_by_id(self.user_id)
 			if not self.user:
 				await self.close()
@@ -61,7 +61,7 @@ class FriendsConsumer(AsyncWebsocketConsumer):
 
 		logger.info(f'data received: {data}')
 		
-		friend_id = data.get('user_id')
+		friend_id = int(data.get('user_id'))
 		message_type = data.get('type')
 		logger.info(f'consumer received a message of type: {message_type}')
 
@@ -89,17 +89,17 @@ class FriendsConsumer(AsyncWebsocketConsumer):
 		if message_type == 'friend_request_sended':
 			await self.send_friend_request(friend_id)
 		
-		# elif message_type == "friend_request_cancelled":
-		#     await self.cancel_friend_request(friend)
+		elif message_type == "friend_request_cancelled":
+			await self.cancel_friend_request(friend_id)
 
 		elif message_type == 'friend_request_accepted':
 			await self.accept_friend_request(friend_id)
 
-		# elif message_type == 'friend_request_declined':
-		#     await self.decline_friend_request(friend)
+		elif message_type == 'friend_request_declined':
+			await self.decline_friend_request(friend_id)
 
-		# elif message_type == 'friend_removed':
-		#     await self.remove_friend(friend)
+		elif message_type == 'friend_removed':
+			await self.remove_friend(friend_id)
 
 
 	async def send_friend_request(self, friend_id):
@@ -135,29 +135,41 @@ class FriendsConsumer(AsyncWebsocketConsumer):
 			logging.info(f'error: {e}')
 
 
-	# async def cancel_friend_request(self, event):
-	#     try:
-	#         receiver_id = event.get('user_id')
-	#         logging.info(f'id: {receiver_id}')
-	#         receiver = await database_sync_to_async(CustomUser.objects.get)(id=receiver_id)
-	#         logging.info(f'user: {receiver}')
-	#         friend_request = await database_sync_to_async(FriendRequest.objects.get)(sender=self.user, receiver=receiver)
-	#         logging.info(f'request: {friend_request}')
+	async def cancel_friend_request(self, friend_id):
+		try:
+			friendship = await database_sync_to_async(
+				Friendship.objects.get
+			)(user_id=self.user_id, friend_id=friend_id, status='pending')
+		except Friendship.DoesNotExist:
+			logger.error('Error: request your try to cancel is not found')
+			return
 
-	#         await database_sync_to_async(friend_request.cancel)()
+		await database_sync_to_async(friendship.delete)()
+		
+		user_data = await self.get_user_by_id(self.user_id)
+		friend_data = await self.get_user_by_id(friend_id)
 
-	#         await self.channel_layer.group_send(
-	#             f'user_{receiver.id}',
-	#             {
-	#                 'type': 'friend_response',
-	#                 'action': 'friend_request_cancelled',
-	#                 'user': self.user
-	#             }
-	#         )
+		logging.info(f'friend: {friend_data}')
+		logging.info(f'user: {user_data}')
 
+		await self.channel_layer.group_send(
+			f'user_{friend_id}',
+			{
+				'type': 'friend_response',
+				'action': 'friend_request_cancelled',
+				'user': user_data
+			}
+		)
 
-	#     except Exception as e:
-	#         logging.info(f'error: {e}')
+		await self.channel_layer.group_send(
+			f'user_{self.user_id}',
+			{
+				'type': 'friend_response',
+				'action': 'friend_request_cancelled',
+				'user': friend_data
+			}
+		)
+
 
 
 	async def accept_friend_request(self, friend_id):
@@ -215,86 +227,75 @@ class FriendsConsumer(AsyncWebsocketConsumer):
 			return
 	
 
-	# async def decline_friend_request(self, event):
-	#     try:
-	#         sender_id = event.get('user_id')
-	#         sender = await database_sync_to_async(CustomUser.objects.get)(id=sender_id)
+	async def decline_friend_request(self, friend_id):
+		try:
+			friendship = await database_sync_to_async(
+				Friendship.objects.get
+			)(user_id=friend_id, friend_id=self.user_id)
+		except Friendship.DoesNotExist:
+			logger.error(f'Friend request not found, cannot decline it')
+			return
 
-	#         # Retrieve the friend request
-	#         friend_request = await database_sync_to_async(FriendRequest.objects.get)(
-	#             sender=sender,
-	#             receiver=self.user
-	#         )
+		# Delete the friend request
+		await database_sync_to_async(friendship.delete)()
+		
+		user_data = await self.get_user_by_id(self.user_id)
+		friend_data = await self.get_user_by_id(friend_id)
 
-	#         receiver_data = self.user.toJSON()
-	#         sender_data = sender.toJSON()
+		await self.channel_layer.group_send(
+			f'user_{friend_id}',
+			{
+				'type': 'friend_response',
+				'action': 'friend_request_declined',
+				'user': user_data
+			}
+		)
 
-	#         # Delete the friend request
-	#         await database_sync_to_async(friend_request.delete)()
-
-	#         await self.channel_layer.group_send(
-	#             f'user_{sender.id}',
-	#             {
-	#                 'type': 'friend_response',
-	#                 'action': 'friend_request_declined',
-	#                 'user': receiver_data
-	#             }
-	#         )
-
-	#     except Exception as e:
-	#         logging.info(f'Error declining friend request: {e}')
+		await self.channel_layer.group_send(
+			f'user_{self.user_id}',
+			{
+				'type': 'friend_response',
+				'action': 'friend_request_declined',
+				'user': friend_data
+			}
+		)
 
 
-	# async def remove_friend(self, event):
-	#     try:
-	#         friend_id = event.get('user_id')
-	#         logging.info(friend_id)
+	async def remove_friend(self, friend_id):
+		try:
+			friendship = await database_sync_to_async(
+				Friendship.objects.filter((
+					Q(user_id=self.user_id, friend_id=friend_id) |
+					Q(user_id=friend_id, friend_id=self.user_id)
+				)).first
+			)()
+		except Friendship.DoesNotExist:
+			logger.error(f'Error: cannot remove friendship between users')
+			return
 
-	#         friend = await database_sync_to_async(
-	#             CustomUser.objects.get
-	#         )(id=friend_id)
-	#         logging.info(friend)
+		await database_sync_to_async(friendship.delete)()
+		logging.info(f'Friend removed')
 
-	#         friend_friend_list, created = await database_sync_to_async(
-	#             FriendList.objects.get_or_create
-	#         )(user=friend)
+		user_data = await self.get_user_by_id(self.user_id)
+		friend_data = await self.get_user_by_id(friend_id)
 
-	#         logging.info(friend_friend_list)
+		await self.channel_layer.group_send(
+			f'user_{self.user_id}',
+			{
+				'type': 'friend_response',
+				'action': 'friend_removed',
+				'user': friend_data
+			}
+		)
 
-	#         user_friend_list, created = await database_sync_to_async(
-	#             FriendList.objects.get_or_create
-	#         )(user=self.user)
-
-	#         logging.info(user_friend_list)
-
-	#         await database_sync_to_async(friend_friend_list.remove_friend)(self.user)
-	#         await database_sync_to_async(user_friend_list.remove_friend)(friend)
-
-	#         logging.info('removed')
-
-	#         user_data = self.user.toJSON()
-	#         friend_data = friend.toJSON()
-
-	#         await self.channel_layer.group_send(
-	#             f'user_{self.user.id}',
-	#             {
-	#                 'type': 'friend_response',
-	#                 'action': 'friend_removed',
-	#                 'user': friend_data
-	#             }
-	#         )
-
-	#         await self.channel_layer.group_send(
-	#             f'user_{friend.id}',
-	#             {
-	#                 'type': 'friend_response',
-	#                 'action': 'friend_removed',
-	#                 'user': user_data
-	#             }
-	#         )
-
-	#     except Exception as e:
-	#         logging.info(f'remove friend error: {e}')
+		await self.channel_layer.group_send(
+			f'user_{friend_id}',
+			{
+				'type': 'friend_response',
+				'action': 'friend_removed',
+				'user': user_data
+			}
+		)
 
 
 	async def friend_response(self, event):
