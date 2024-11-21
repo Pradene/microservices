@@ -7,14 +7,14 @@ export class Chat extends TemplateComponent {
         super()
 
         this.handleSearchListener = () => this.handleSearch()
-        this.receiveMessageListener = (e) => this.receiveMessage(e.detail)
+        this.WebSocketMessageListener = (e) => this.WebSocketMessage(e.detail)
     }
 
     async unmount() {
         const input = this.getRef('input')
         input.removeEventListener('keyup', this.handleSearchListener)
         
-        window.removeEventListener('chatEvent', this.receiveMessageListener)
+        window.removeEventListener('chatEvent', this.WebSocketMessageListener)
     }
 
     async componentDidMount() {
@@ -23,7 +23,7 @@ export class Chat extends TemplateComponent {
         const input = this.getRef('input')
         input.addEventListener('keyup', this.handleSearchListener)
 
-        window.addEventListener('chatEvent', this.receiveMessageListener)
+        window.addEventListener('chatEvent', this.WebSocketMessageListener)
     }
 
     async getRooms() {
@@ -60,16 +60,13 @@ export class Chat extends TemplateComponent {
         }
     }
 
-    receiveMessage(event) {
-		console.log(event)
+    WebSocketMessage(event) {
         const message = event.message
-        console.log(message)
 
         if (message && message.type === 'message') {
             const chatRooms = this.getRef('rooms')
 
             const chatRoom = chatRooms.querySelector(`[data-room-id='${message.room_id}']`)
-
 
             const chatRoomMessage = chatRoom.querySelector('.message')
             chatRoomMessage.textContent = truncateString(message.content, 48)
@@ -94,19 +91,19 @@ export class Chat extends TemplateComponent {
         imgContainer.className = 'profile-picture'
 
         const img = document.createElement('img')
-        img.src = room.picture
+        // img.src = room.picture
 
         const infoContainer = document.createElement('div')
         infoContainer.className = 'info'
 
         const name = document.createElement('span')
         name.className = 'name'
-        name.textContent = room.name
+        // name.textContent = room.name
 
         const message = document.createElement('span')
         message.className = 'message'
-        if (room.last_message) {
-            message.textContent = room.last_message.content
+        if (room.message.content) {
+            message.textContent = room.message.content
         } else {
             message.textContent = "Send a message..."
         }

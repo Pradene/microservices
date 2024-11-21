@@ -96,7 +96,7 @@ class RoomView(View):
 					rooms_data.append({
 						'id': room.id,
 						'message': {
-							'content': latest_message['content'] if latest_message['source'] == 'message' else 'Invitation',
+							'content': latest_message['content'] if latest_message['source'] == 'message' else f"Invitation {latest_message['status']}",
 							'user': {
 								'username': '',
 								'picture': '',

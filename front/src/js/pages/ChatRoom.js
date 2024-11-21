@@ -110,7 +110,7 @@ export class ChatRoom extends TemplateComponent {
 
 		const content = document.createElement('p')
 		content.textContent = 'Invitation refused'
-		invitation.appendChild(content)
+		invitation.prepend(content)
 	}
 
 	handleInvitationCanceled(message) {
@@ -123,7 +123,7 @@ export class ChatRoom extends TemplateComponent {
 
 		const content = document.createElement('p')
 		content.textContent = 'Invitation canceled'
-		invitation.appendChild(content)
+		invitation.prepend(content)
 	}
 
 	handleInvitationAccepted(message) {
@@ -136,7 +136,7 @@ export class ChatRoom extends TemplateComponent {
 
 		const content = document.createElement('p')
 		content.textContent = 'Invitation accepted'
-		invitation.appendChild(content)
+		invitation.prepend(content)
 	}
 
 	// Send a message

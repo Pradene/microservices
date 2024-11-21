@@ -187,18 +187,18 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
 			existing_invitations = await database_sync_to_async(
 				list
-			)(Invitation.objects.filter(user_id=self.user_id, room_id=room_id, status='pending'))
+			)(Invitation.objects.filter(user_id=self.user_id, room_id=room.id, status='pending'))
 
 			for invitation in existing_invitations:
 				invitation.status='canceled'
 				await database_sync_to_async(invitation.save)()
 
 				await self.channel_layer.group_send(
-					f'chat_{room_id}',
+					f'chat_{room.id}',
 					{
 						'type': 'invitation',
 						'id': invitation.id,
-						'room_id': room_id,
+						'room_id': room.id,
 						'user_id': self.user_id,
 						'status': invitation.status,
 					}
@@ -224,18 +224,18 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 			if invitation.user_id == self.user_id:
 				return
 
-			if invitation.room_id != room_id:
+			if invitation.room_id != room.id:
 				return
 
 			invitation.status = 'declined'
 			await database_sync_to_async(invitation.save)()
 
 			await self.channel_layer.group_send(
-				f'chat_{room_id}',
+				f'chat_{room.id}',
 				{
 					'type': 'invitation',
 					'id': invitation.id,
-					'room_id': room_id,
+					'room_id': room.id,
 					'user_id': invitation.user_id,
 					'status': invitation.status,
 				}
@@ -263,17 +263,17 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 			if invitation.user_id == self.user_id:
 				return
 
-			if invitation.room_id != room_id:
+			if invitation.room_id != room.id:
 				return
 
 			invitation.status = 'accepted'
 
 			await self.channel_layer.group_send(
-				f'chat_{room_id}',
+				f'chat_{room.id}',
 				{
 					'type': 'invitation',
 					'id': invitation.id,
-					'room_id': room_id,
+					'room_id': room.id,
 					'user_id': invitation.user_id,
 					'status': invitation.status,
 					'game_id': '',

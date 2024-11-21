@@ -1,7 +1,0 @@
-- start chat consumer
-- make api request for getting messages of a chat
-- docker compose bind mount volume to check if migrations work first try
-
-
-channel_name of 1: specific..inmemory!VxBpFuxNagFN
-channel_name of 36: specific..inmemory!lvHwxsjtBpFo
