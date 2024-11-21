@@ -5,6 +5,7 @@ import requests
 from datetime import timedelta
 
 from django.views import View
+from django.db.models import Value
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 
@@ -77,9 +78,36 @@ class RoomView(View):
 			rooms = Room.objects.filter(user_ids__contains=[user_id])
 			rooms_data = []
 			for room in rooms:
-				rooms_data.append({
-					'id': room.id,
-				})
+				messages = Message.objects.filter(
+					room_id=room.id
+				).values('id', 'user_id', 'room_id', 'content', 'created_at'
+				).annotate(source=Value('message'))
+
+				invitations = Invitation.objects.filter(
+					room_id=room.id
+				).values('id', 'user_id', 'room_id', 'status', 'created_at'
+				).annotate(source=Value('invitation'))
+
+				queryset = list(chain(messages, invitations))
+				sorted_queryset = sorted(queryset, key=lambda x: x['created_at'])
+				latest_message = sorted_queryset[-1] if sorted_queryset else None
+
+				if latest_message:
+					rooms_data.append({
+						'id': room.id,
+						'message': {
+							'content': latest_message['content'] if latest_message['source'] == 'message' else 'Invitation',
+							'user': {
+								'username': '',
+								'picture': '',
+							},
+						},
+					})
+				else:
+					rooms_data.append({
+						'id': room.id,
+					})
+
 
 			return JsonResponse({'rooms': rooms_data}, status=200)
 
