@@ -1,9 +1,7 @@
-import { Session } from "../utils/Session.js"
 import { getCookie } from "../utils/utils.js"
 import { WSManager } from "../utils/WebSocketManager.js"
 
 export function connectFriendsSocket() {
-	const url = "wss://" + location.hostname + ":" + location.port + "/ws/friends/"
 	
 	const token = getCookie('access_token')
 	if (!token) {
@@ -11,7 +9,9 @@ export function connectFriendsSocket() {
 		return
 	}
 
-	const socket = new WebSocket(url, token)
+	const url = "wss://" + location.hostname + ":" + location.port + "/ws/friends/" + "?token=" + token
+
+ 	const socket = new WebSocket(url)
 	if (!socket) return
 
 	WSManager.add('friends', socket)

@@ -28,15 +28,17 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = [
-	'*',
 	'localhost',
 	'127.0.0.1',
 	'chat-service'
 ]
 
+CORS_ALLOWED_ORIGINS = [
+	'http://localhost:3000',
+	'https://localhost:5000',
+]
 
 # Application definition
-
 INSTALLED_APPS = [
 	'django.contrib.admin',
 	'django.contrib.auth',
@@ -45,7 +47,8 @@ INSTALLED_APPS = [
 	'django.contrib.messages',
 	'django.contrib.staticfiles',
 	'chat_service',
-	'channels'
+	'channels',
+	'daphne'
 ]
 
 MIDDLEWARE = [
