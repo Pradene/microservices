@@ -15,7 +15,6 @@ export function connectChatSocket() {
 	WSManager.add('chat', socket)
 
 	socket.onmessage = (e) => {
-		console.log(e)
 		const event = new CustomEvent('chatEvent', {
 			detail: e
 		})

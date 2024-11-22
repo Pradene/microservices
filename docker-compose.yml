@@ -53,6 +53,8 @@ services:
       DB_USER: user_service_user
       DB_PASSWORD: password
       SECRET_KEY: $SECRET_KEY
+    volumes:
+      - media:/app/media
     ports:
       - '8001:8000'
     networks:
@@ -175,6 +177,7 @@ services:
       HOST_HOSTNAME: $HOST_HOSTNAME
     volumes:
       - ./front:/app
+      - media:/usr/share/nginx/media
     ports:
       - '3000:80'
       - '5000:443'
@@ -201,3 +204,6 @@ services:
 networks:
   app_network:
     driver: bridge
+
+volumes:
+  media:
