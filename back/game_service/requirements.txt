@@ -1,0 +1,11 @@
+Django==4.2.16
+django-cors-headers==4.4.0
+psycopg2-binary==2.9.3
+daphne==4.1.2
+channels==4.1.0
+celery
+django-redis
+channels_redis
+redis
+requests
+pyjwt==2.8.0

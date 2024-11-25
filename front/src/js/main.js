@@ -12,6 +12,7 @@ import { Profile } from "./pages/Profile.js"
 import { EditProfile } from "./pages/EditProfile.js"
 import { Game } from "./pages/Game.js"
 import { Tournament } from "./pages/Tournament.js"
+import { LocalGame } from './pages/LocalGame.js'
 
 import { connectChatSocket } from './websockets/Chat.js'
 import { connectFriendsSocket } from './websockets/Friends.js'
@@ -34,6 +35,7 @@ const router = new Router([
     {path: '/login/', view: new Login(), protected: false},
     {path: '/signup/', view: new Signup(), protected: false},
     {path: '/verify-otp/', view: new OTP(), protected: false},
+    {path: '/game/local/', view: new LocalGame(), protected: true},
     {path: '/game/:id/', view: new Game(), protected: true},
     {path: '/tournament/:id/', view: new Tournament(), protected: true},
 ])
@@ -51,7 +53,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchCSRFToken()
 
     if (await checkLogin()) {
-        console.log('connected')
         connectChatSocket()
         connectFriendsSocket()
 

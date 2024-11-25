@@ -12,9 +12,11 @@ import { Platform } from './Platform.js'
 import { Stadium } from './Stadium.js'
 import { WSManager } from '../utils/WebSocketManager.js'
 
+// maybe show the game on socket open
 export class Pong {
     constructor(id) {
 
+        console.log(id)
         if (Pong.instance) {
             return Pong.instance
         }
@@ -22,7 +24,7 @@ export class Pong {
         Pong.instance = this
 
         this.gameID = id
-
+        
         const canvas = document.getElementById('canvas')
         if (!canvas) return
         canvas.getContext('webgl2')
@@ -60,7 +62,6 @@ export class Pong {
         window.addEventListener('touchend', this.touchEnd)
 
         this.requestId = null
-        this.display()
 
         this.connectGameWebSocket()
     }
@@ -121,19 +122,29 @@ export class Pong {
     }
 
     connectGameWebSocket() {
-        if (!this.gameID) return
 
-        
-        const url = `wss://${location.hostname}:${location.port}/ws/game/${this.gameID}/`
+        let url = `wss://${location.hostname}:${location.port}/ws/game/`
+        //adding game id for online game, if id is null it is a local game
+        if (this.gameID) {
+            url += `${this.gameID}/`
+        } else {
+            url += `local/`
+        }
+
         const socket = new WebSocket(url)
         if (!socket) return
+
+        console.log('connected to socket')
             
         WSManager.add('game', socket)
 
         socket.onopen = () => {
             console.log('Connected to game WebSocket')
         
-            sessionStorage.setItem('game', this.gameID)
+            if (this.gameID)
+                sessionStorage.setItem('game', this.gameID)
+            
+            this.display()
         }
         
         socket.onmessage = (e) => {
@@ -148,7 +159,7 @@ export class Pong {
             socket.close()
             
             const router = Router.get()
-            router.back()            
+            router.back()    
         }
 
         socket.onclose = () => {
