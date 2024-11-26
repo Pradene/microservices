@@ -143,9 +143,8 @@ services:
       context: ./back/mail_service
     container_name: mail-service
     environment:
-      EMAIL: $EMAIL
-      EMAIL_USER: $EMAIL_USER
-      EMAIL_PASSWORD: $EMAIL_PASSWORD
+      EMAIL_HOST_USER: $EMAIL_HOST_USER
+      EMAIL_HOST_PASSWORD: $EMAIL_HOST_PASSWORD
       CELERY_BROKER_URL: redis://redis:6379/0
     depends_on:
       - redis

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def send_welcome_email(email, username):
 	logger.info(f'sending welcome email')
 
-	from_email = settings.EMAIL
+	from_email = settings.EMAIL_HOST_USER
 	subject = 'Welcome to Pong.'
 	message = "Thank you for registering with us {username}. \
 			We're excited to have you on board."
@@ -26,7 +26,7 @@ def send_welcome_email(email, username):
 def send_otp_email(email, username, code):
 	logger.info(f'sending otp email')
 
-	from_email = settings.EMAIL
+	from_email = settings.EMAIL_HOST_USER
 	subject = "Your One Time Password"
 	message = f"Dear {username}, \
 			\n\nYour OTP code is {code}. \
