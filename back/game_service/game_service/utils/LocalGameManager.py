@@ -37,8 +37,8 @@ class LocalGameManager:
 
 	def initialize_state(self):
 		positions = {
-			self.user_ids[0]: Vector2(-400 + 20, 0),
-			self.user_ids[1]: Vector2(400 - 20, 0),
+			self.user_ids[0]: Vector2(-(400 - 20), 0),
+			self.user_ids[1]: Vector2((400 - 20), 0),
 		}
 
 		self.users = {user_id:
@@ -119,10 +119,10 @@ class LocalGameManager:
 			return
 
 		for user in self.users.values():
-			collision_normal = line_rect_collision(self.ball.position, future_position, user)
-			if collision_normal:
+			direction = line_rect_collision(self.ball.position, future_position, user)
+			if direction:
 				# Reflect the ball's direction based on the collision normal
-				self.ball.direction = self.ball.direction.reflect(collision_normal)
+				self.ball.direction = direction
 				self.ball.increase_speed()
 				break
 
@@ -130,7 +130,7 @@ class LocalGameManager:
 	async def check_wall_collisions(self, start, end):
 		# Check collision with left wall
 		if line_intersection(start, end, Vector2(-400, 300), Vector2(-400, -300)):
-			user = self.get_user_by_x_position(400 - 20)
+			user = self.get_user_by_x_position((400 - 20))
 			user.score += 1
 
 			if await self.check_game_finished():
@@ -141,7 +141,7 @@ class LocalGameManager:
 
 		# Check collision with right wall
 		if line_intersection(start, end, Vector2(400, 300), Vector2(400, -300)):
-			user = self.get_user_by_x_position(-400 + 20)
+			user = self.get_user_by_x_position(-(400 - 20))
 			user.score += 1
 
 			if await self.check_game_finished():

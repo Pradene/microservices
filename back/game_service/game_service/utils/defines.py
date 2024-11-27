@@ -1,7 +1,7 @@
 from typing import List
 
-P1_POSITION: List[int] = [8, 268]
-P2_POSITION: List[int] = [800 - 16, 268]
+P1_POSITION: List[int] = [-(400 - 20), 0]
+P2_POSITION: List[int] = [(400 - 20), 0]
 SCREEN_WIDTH: int = 800
 SCREEN_HEIGHT: int = 600
 
@@ -18,6 +18,6 @@ PADDLE_SPEED: int = 6
 PADDLE_WIDTH: int = 8
 PADDLE_HEIGHT: int = 64
 
-POINTS_TO_WIN: int = 5
+POINTS_TO_WIN: int = 10
 
 FPS: int = 60
