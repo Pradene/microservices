@@ -20,7 +20,12 @@ class Ball:
         self.moving = False
         await asyncio.sleep(1)
         self.moving = True
+        self.speed = BALL_SPEED
 
     def move(self):
         if self.moving:
             self.position += self.direction.scale(self.speed)
+
+    def increase_speed(self):
+        self.speed += BALL_SPEED_INCREMENT
+

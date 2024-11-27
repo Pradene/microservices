@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { Pong } from "./Pong.js"
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from "./Defines.js"
+import { CANVAS_HEIGHT, CANVAS_WIDTH, THREE_RATIO } from "./Defines.js"
 
 export class Platform {
     constructor() {
@@ -29,8 +29,8 @@ export class Platform {
 
         const wallMaterial = new THREE.MeshPhongMaterial({ color: 0xA3BAC3, transparent: false, opacity: 0.5 })
         
-        const topBotGeometry = new THREE.BoxGeometry(6.4, 0.2, 0.2)
-        const leftRightGeometry = new THREE.BoxGeometry(0.2, 0.2, 8.4)
+        const topBotGeometry = new THREE.BoxGeometry((600 / THREE_RATIO) + 0.4, 0.2, 0.2)
+        const leftRightGeometry = new THREE.BoxGeometry(0.2, 0.2, (800 / THREE_RATIO) + 0.4)
         
         const platform = new THREE.Mesh(fieldGeometry, material)
 		const top = new THREE.Mesh(topBotGeometry, wallMaterial)
@@ -38,10 +38,10 @@ export class Platform {
         const bot = new THREE.Mesh(topBotGeometry, wallMaterial)
         const right = new THREE.Mesh(leftRightGeometry, wallMaterial)
         
-		top.position.set(0, 0, -4.1)
-		bot.position.set(0, 0, 4.1)
-		left.position.set(-3.1, 0, 0)
-		right.position.set(3.1, 0, 0)
+		top.position.set(0, 0, -(800 / 2 / THREE_RATIO + 0.1))
+		bot.position.set(0, 0, (800 / 2 / THREE_RATIO + 0.1))
+		left.position.set(-(600/ 2 / THREE_RATIO + 0.1), 0, 0)
+		right.position.set((600/ 2 / THREE_RATIO + 0.1), 0, 0)
         
         this.instance = new THREE.Group()
 

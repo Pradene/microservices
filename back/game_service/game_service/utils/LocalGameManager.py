@@ -123,12 +123,13 @@ class LocalGameManager:
 			if collision_normal:
 				# Reflect the ball's direction based on the collision normal
 				self.ball.direction = self.ball.direction.reflect(collision_normal)
+				self.ball.increase_speed()
 				break
 
 
 	async def check_wall_collisions(self, start, end):
 		# Check collision with left wall
-		if line_intersects_line(start, end, Vector2(-400, 300), Vector2(-400, -300)):
+		if line_intersection(start, end, Vector2(-400, 300), Vector2(-400, -300)):
 			user = self.get_user_by_x_position(400 - 20)
 			user.score += 1
 
@@ -139,7 +140,7 @@ class LocalGameManager:
 			return None
 
 		# Check collision with right wall
-		if line_intersects_line(start, end, Vector2(400, 300), Vector2(400, -300)):
+		if line_intersection(start, end, Vector2(400, 300), Vector2(400, -300)):
 			user = self.get_user_by_x_position(-400 + 20)
 			user.score += 1
 
@@ -150,10 +151,10 @@ class LocalGameManager:
 			return None
 		
 		# Check collision with top wall
-		if line_intersects_line(start, end, Vector2(-400, 300), Vector2(400, 300)):
+		if line_intersection(start, end, Vector2(-400, 300), Vector2(400, 300)):
 			return Vector2(0, 1)  # Collision normal facing down
 		# Check collision with bottom wall
-		if line_intersects_line(start, end, Vector2(-400, -300), Vector2(400, -300)):
+		if line_intersection(start, end, Vector2(-400, -300), Vector2(400, -300)):
 			return Vector2(0, -1)  # Collision normal facing up
 		
 		return None
