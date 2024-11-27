@@ -57,7 +57,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         connectFriendsSocket()
 
         const gameID = sessionStorage.getItem('game')
-        if (gameID) {
+        if (gameID !== null) {
+            console.log('hello')
+            console.log(gameID)
             const router = Router.get()
             router.navigate(`/game/${gameID}/`)
         }

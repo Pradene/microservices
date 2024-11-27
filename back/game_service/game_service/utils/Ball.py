@@ -22,4 +22,5 @@ class Ball:
         self.moving = True
 
     def move(self):
-        self.position += self.direction.scale(self.speed)
+        if self.moving:
+            self.position += self.direction.scale(self.speed)

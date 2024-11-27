@@ -9,7 +9,6 @@ from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
 
 from chat_service.models import Room, Message, Invitation
-from chat_service.decorators import jwt_required_ws
 
 logger = logging.getLogger(__name__)
 
@@ -17,11 +16,11 @@ logger = logging.getLogger(__name__)
 # from .utils.rooms import is_user_room_member
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
-	@jwt_required_ws
 	async def connect(self):
 		self.user_id = self.scope['user_id']
+		logging.info(f'user id: {self.user_id}')
 
-		if self.user_id is not None:
+		if self.user_id:
 			cache.set(f'user{self.user_id}_chat_wschannel', self.channel_name, timeout=None)
 			tmp = cache.get(f'user{self.user_id}_chat_wschannel')
 			logger.info(f'channel_name of {self.user_id}: {tmp}')

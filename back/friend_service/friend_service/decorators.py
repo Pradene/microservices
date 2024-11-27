@@ -41,31 +41,3 @@ def jwt_required(view_func):
         return view_func(request, *args, **kwargs)
 
     return _wrapped_view
-
-def jwt_required_ws(func):
-	@wraps(func)
-	def wrapper(self, *args, **kwargs):
-		# Extract the token from query params
-		query_params = parse_qs(self.scope["query_string"].decode())
-		token = query_params.get("token", [None])[0]
-
-		if not token:
-			raise DenyConnection("Token is required")
-
-		try:
-			# Decode the token
-			payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-			user_id = payload.get("user_id")
-			self.scope["user_id"] = user_id
-		except jwt.ExpiredSignatureError:
-			self.scope["user_id"] = None
-			raise DenyConnection("Token has expired")
-		except jwt.InvalidTokenError:
-			self.scope["user_id"] = None
-			raise DenyConnection("Invalid token")
-		except User.DoesNotExist:
-			self.scope["user_id"] = None
-
-		return func(self, *args, **kwargs)
-
-	return wrapper

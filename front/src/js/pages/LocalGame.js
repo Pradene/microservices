@@ -18,6 +18,6 @@ export class LocalGame extends TemplateComponent {
 
     async componentDidMount() {
         console.log('creating game')
-        this.game = new Pong(null)
+        this.game = new Pong('local', null)
     }
 }

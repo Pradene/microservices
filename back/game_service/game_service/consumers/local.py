@@ -13,37 +13,89 @@ from collections import deque
 from game_service.utils import LocalGameManager
 from game_service.models import Game
 
+logger = logging.getLogger(__name__)
+
 class LocalGameConsumer(AsyncJsonWebsocketConsumer):
 	async def connect(self):
 		self.user_id = self.scope['user_id']
-		logging.info(f'user id: {self.user_id}')
+		logging.info(f'user {self.user_id} connected to Game WebSocket')
 
-		await self.accept()
-		
-		self.game_manager = LocalGameManager()
-		self.game_manager.add_observer(self)
-		asyncio.create_task(self.game_manager.start_game())
+		self.game_mode = self.scope['url_route']['kwargs']['game_mode']
+		self.game_id = self.scope['url_route']['kwargs']['game_id'] if self.game_mode == 'remote' else '0'
+
+		if self.game_mode != 'remote' and self.game_mode != 'local':
+			logger.error(f'Wrong game mode, must be local or remote')
+			await self.close()
+
+		logger.info(f'game mode: {self.game_mode}')
+
+		if self.user_id:
+			await self.accept()
+
+		else:
+			await self.close()
+
 
 	async def disconnect(self, close_code):
 		pass
-		
+
+
 	async def receive(self, text_data):
 		try:
 			data = json.loads(text_data)
-			logging.info(f'data: {data}')
+			logger.info(f'data received: {data}')
+			
+			message_type = data.get('type')
 
-			if not self.game_manager:
+			if not self.is_user_in_game():
 				return
 
-			if 'movement' in data:
-				self.game_manager.update_player(self.user_id, data['movement'])
-			elif 'p2movement' in data:
-				self.game_manager.update_player(self.local_user.id, data['p2movement'])
-			elif data['quit']:
+			if message_type == 'ready':
+				await self.handle_user_ready(data)
+			
+			elif message_type == 'update':
+				await self.handle_user_update(data)
+
+			elif message_type == 'quit':
 				await self.game_manager.quit(self.user_id)
 
 		except Exception as e:
 			logging.error(f'error: {e}')
+
+
+	async def handle_user_ready(self, data):
+		if self.game_mode == 'remote':
+			key = f'game:{self.game_id}:users'
+			users = cache.get(key, {})
+			users[self.user_id] = self.user_id
+			cache.set(key, users, timeout=None)
+		
+		await self.start_game_if_ready()
+
+
+	async def handle_user_update(self, data):
+		user_id = data.get('user_id')
+		movement = data.get('movement')
+
+		self.game_manager.update_user(user_id, movement)
+
+
+	async def start_game_if_ready(self):
+		logger.info(f'start game in {self.game_mode}')
+
+		if self.game_mode == 'local':
+			self.game_manager = LocalGameManager(
+				self.game_mode,
+				self.game_id,
+				[self.user_id, 0]
+			)
+			
+			self.game_manager.add_observer(self)
+			asyncio.create_task(self.game_manager.start_game())
+		
+		elif self.game_mode == 'remote':
+			return
+
 
 	async def is_user_in_game(self):
 		''' Check if the current user is in the game. '''
@@ -53,58 +105,25 @@ class LocalGameConsumer(AsyncJsonWebsocketConsumer):
 			.exists
 		)()
 
-	def get_connected_users(self):
-		"""Return the list of connected users for the current game."""
-		return list(self.connected_users.get(self.game_id, []))
-
-	def add_connected_user(self, user, game_id):
-		if game_id not in self.connected_users:
-			self.connected_users[game_id] = set()
-		self.connected_users[game_id].add(user)
-
-	def remove_connected_user(self, user, game_id):
-		if game_id in self.connected_users and user in self.connected_users[game_id]:
-			self.connected_users[game_id].remove(user)
-			# Clean up if no users are connected
-			if not self.connected_users[game_id]:
-				del self.connected_users[game_id]
-
-	def check_users_connected(self):
-		# Check if both players are connected
-		with transaction.atomic():
-			game = Game.objects.select_for_update().get(id=self.game_id)
-
-			if game.status == 'waiting':
-				players_count = game.players.count()
-				connected_players = self.connected_users.get(self.game_id, set())
-
-				if len(connected_players) == players_count:
-					game.status = 'started'
-					game.save()
-					return True
-		return False
-
-	# async def send_username(self):
-	#     users = await database_sync_to_async(list)(self.game.players.all())
-
-	#     player = next((user for user in users if user.id == self.user.id), None)
-	#     opponent = next((user for user in users if user.id != self.user.id), None)
-
-	#     await self.send_json({
-	#         'type':     'player_info',
-	#         'player':   player.username,
-	#         'opponent': opponent.username
-	#     })
 
 	async def send_game_state(self, game_state):
-		logging.info(f'sending game')
-		await self.channel_layer.send(
-			self.channel_name,
-			{
-				'type': 'send_game',
-				'data': game_state
-			}
-		)
+		if self.game_mode == 'remote':
+			await self.channel_layer.group_send(
+				self.group_name,
+				{
+					'type': 'send_game',
+					'data': game_state
+				}
+			)
+
+		elif self.game_mode == 'local':
+			await self.channel_layer.send(
+				self.channel_name,
+				{
+					'type': 'send_game',
+					'data': game_state
+				}
+			)
 
 	async def send_game(self, event):
 		data = event.get('data')
@@ -113,16 +132,16 @@ class LocalGameConsumer(AsyncJsonWebsocketConsumer):
 			await self.send_json(data)
 
 		elif data['status'] == 'started' or data['status'] == 'finished':
-			players = data['players']
+			users = data['users']
 			ball = data['ball']
-			player = players.get(self.user.id)
+			player = users.get(str(self.user_id))
 
 			opponent = next(
-				(p for user_id, p in players.items() if user_id != self.user.id),
+				(user for user_id, user in users.items() if user_id != str(self.user_id)),
 				None
 			)
 
-			if opponent and opponent['id'] == self.user.id:
+			if opponent and opponent['id'] == self.user_id:
 				opponent = None
 
 			if player and player['position']['x'] < 0:
@@ -136,4 +155,3 @@ class LocalGameConsumer(AsyncJsonWebsocketConsumer):
 				'opponent': opponent,
 				'ball':     ball
 			})
-

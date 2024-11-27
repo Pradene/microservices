@@ -17,13 +17,9 @@ from channels.db import database_sync_to_async
 from .utils import create_jwt
 from .models import Friendship
 
-from .decorators import jwt_required_ws
-
 logger = logging.getLogger(__name__)
 
 class FriendsConsumer(AsyncWebsocketConsumer):
-
-	@jwt_required_ws
 	async def connect(self):
 		self.user_id = self.scope["user_id"]
 		logger.info(f'User {self.user_id} try to connect to friend consumer')

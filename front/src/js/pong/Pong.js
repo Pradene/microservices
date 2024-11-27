@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { Router } from "../utils/Router.js"
+import { Session } from '../utils/Session.js'
 
 import { Player } from "./Player.js"
 import { Ball } from "./Ball.js"
@@ -14,15 +15,15 @@ import { WSManager } from '../utils/WebSocketManager.js'
 
 // maybe show the game on socket open
 export class Pong {
-    constructor(id) {
+    constructor(mode, id) {
 
-        console.log(id)
         if (Pong.instance) {
             return Pong.instance
         }
 
         Pong.instance = this
 
+        this.gameMode = mode
         this.gameID = id
         
         const canvas = document.getElementById('canvas')
@@ -67,18 +68,28 @@ export class Pong {
     }
 
     static get() {
-        return Pong.instance || new Pong()
+        return Pong.instance || null
     }
 
     keyDownHandler(e) {
         switch (e.key) {
-
             case 'a':
-                WSManager.send('game', { movement: 'UP' })
+                WSManager.send('game', { type: 'update', user_id: Session.getUserID(), movement: 'UP' })
                 break
-            case 'd':                    
-                WSManager.send('game', { movement: 'DOWN' })
+            case 'd':
+                WSManager.send('game', { type: 'update', user_id: Session.getUserID(), movement: 'DOWN' })
                 break
+                
+            case 'ArrowLeft':
+                if (this.gameMode === 'local')
+                    WSManager.send('game', { type: 'update', user_id: 0, movement: 'UP' })
+                break
+            case 'ArrowRight':
+                if (this.gameMode === 'local')
+                    WSManager.send('game', { type: 'update', user_id: 0, movement: 'DOWN' })
+                break
+            
+            
             case 'p':
                 this.camera.setPosition(new THREE.Vector3(0, 4, 10))
                 break
@@ -97,7 +108,12 @@ export class Pong {
         switch (e.key) {
             case 'a':
             case 'd':
-                WSManager.send('game', { movement: 'NONE'})
+                WSManager.send('game', { type: 'update', user_id: Session.getUserID(), movement: 'NONE'})
+                break
+            case 'ArrowLeft':
+            case 'ArrowRight':
+                if (this.gameMode === 'local')
+                    WSManager.send('game', { type: 'update', user_id: 0, movement: 'NONE'})
                 break
             default:
                 break
@@ -105,30 +121,28 @@ export class Pong {
     }
 
     touchStartHandler(e) {
-        console.log(e)
         const position = e.touches[0].clientX
 
         if (position < window.innerWidth / 2) {
-            WSManager.send('game', { movement: 'UP' })
+            WSManager.send('game', { type: 'update', user_id: Session.getUserID(), movement: 'UP' })
         } else {
-            WSManager.send('game', { movement: 'DOWN' })
+            WSManager.send('game', { type: 'update', user_id: Session.getUserID(), movement: 'DOWN' })
         }
     }
 
     touchEndHandler(e) {
-        console.log(e)
-
-        WSManager.send('game', { movement: 'NONE'})
+        WSManager.send('game', { type: 'update', user_id: Session.getUserID(), movement: 'NONE'})
     }
 
     connectGameWebSocket() {
 
-        let url = `wss://${location.hostname}:${location.port}/ws/game/`
+        let url = undefined
+        const baseURL = `wss://${location.hostname}:${location.port}/ws/game`
         //adding game id for online game, if id is null it is a local game
         if (this.gameID) {
-            url += `${this.gameID}/`
+            url = `${baseURL}/remote/${this.gameID}/`
         } else {
-            url += `local/`
+            url = `${baseURL}/local/`
         }
 
         const socket = new WebSocket(url)
@@ -139,16 +153,22 @@ export class Pong {
         WSManager.add('game', socket)
 
         socket.onopen = () => {
-            console.log('Connected to game WebSocket')
+            WSManager.send('game', {
+                type: 'ready',
+            })
         
-            if (this.gameID)
+            if (this.gameID) {
+                console.log('set session storage')
                 sessionStorage.setItem('game', this.gameID)
+            }
             
             this.display()
         }
         
         socket.onmessage = (e) => {
             const data = JSON.parse(e.data)
+            console.log('data received from game server:', data)
+
             this.update(data)
         }
 

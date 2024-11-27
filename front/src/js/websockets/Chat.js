@@ -2,13 +2,7 @@ import { WSManager } from "../utils/WebSocketManager"
 import { getCookie } from "../utils/utils.js"
 
 export function connectChatSocket() {
-	const token = getCookie('access_token')
-	if (!token) {
-		console.error('error: Token not defined for connecting to friend consumer')
-		return
-	}
-
-	const url = "wss://" + location.hostname + ":" + location.port + "/ws/chat/" + "?token=" + token
+	const url = "wss://" + location.hostname + ":" + location.port + "/ws/chat/"
 	const socket = new WebSocket(url)
 	if (!socket) return
 

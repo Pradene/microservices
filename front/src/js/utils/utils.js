@@ -69,6 +69,7 @@ export async function apiRequest(url, options = {}) {
 
         const response = await fetch(url, fetchOptions)
         const data = await response.json()
+        console.log(data)
 
         if (response.ok) {
             return data

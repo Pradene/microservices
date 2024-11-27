@@ -18,7 +18,7 @@ export class Game extends TemplateComponent {
 
     async componentDidMount() {
         const id = this.getGameID()
-        this.game = new Pong(id)
+        this.game = new Pong('remote', id)
     }
 
     getGameID() {

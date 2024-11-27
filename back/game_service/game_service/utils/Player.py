@@ -6,9 +6,8 @@ from .Vector import Vector2
 
 
 class Player:
-    def __init__(self, id, name, position):
+    def __init__(self, id, position):
         self.id = id
-        self.name = name
         self.position = position
         self.movement = 'NONE'
         self.score = 0

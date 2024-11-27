@@ -102,6 +102,8 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',  # Redis backend
         'CONFIG': {
             "hosts": [('redis', 6379)],  # Point to the correct Redis server
+			"capacity": 1000,
+			"expiry": 2,
         },
     },
 }

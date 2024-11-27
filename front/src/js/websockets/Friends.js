@@ -2,15 +2,7 @@ import { getCookie } from "../utils/utils.js"
 import { WSManager } from "../utils/WebSocketManager.js"
 
 export function connectFriendsSocket() {
-	
-	const token = getCookie('access_token')
-	if (!token) {
-		console.error('error: Token not defined for connecting to friend consumer')
-		return
-	}
-
-	const url = "wss://" + location.hostname + ":" + location.port + "/ws/friends/" + "?token=" + token
-
+	const url = "wss://" + location.hostname + ":" + location.port + "/ws/friends/"
  	const socket = new WebSocket(url)
 	if (!socket) return
 
