@@ -20,24 +20,33 @@ TIME_TO_SLEEP: float = (1 / FPS)
 logger = logging.getLogger(__name__)
 
 class Game:
-	def __init__(self):
-		self.countdown = COUNTDOWN
+	def __init__(self, game_id=None):
+		self.game_id = game_id
 		self.status = 'waiting'
+		self.countdown = COUNTDOWN
 
 		self.ball = Ball()
 
 		self.users = {}
+		self.active_users = {}
+
 		self.consumers = []
 
+		self.pause_timer = None
+		self.pause_user_id = None
 
-	def add_consumer(self, consumer=None):
+
+	def add_user(self, consumer=None):
 		if consumer is None:
 			user_id = 0
 		else:
 			self.consumers.append(consumer)
 			user_id = consumer.user_id
 
-		self.users[user_id] = Player(user_id, self.get_initial_pos())
+		if user_id not in self.users:
+			self.users[user_id] = Player(user_id, self.get_initial_pos())
+		
+		self.active_users[user_id] = True
 
 
 	def get_initial_pos(self):
@@ -51,11 +60,16 @@ class Game:
 		else:
 			return None
 
-	def remove_consumer(self, consumer):
+
+	def remove_user(self, consumer):
 		self.consumers.remove(consumer)
+		user_id = consumer.user_id
+
+		if user_id in self.active_users:
+			self.active_users[user_id] = False
 
 
-	async def notify_players(self):
+	async def notify_users(self):
 		for consumer in self.consumers:
 			game_state = self.get_game_state(consumer.user_id)
 			await consumer.send_json(game_state)
@@ -63,18 +77,30 @@ class Game:
 
 	async def start_game(self):
 		try:
-			logging.info("Starting game")
+			if self.status != 'waiting':
+				return
+
+			self.status = 'ready'
 
 			while self.countdown >= 0:
-				await self.notify_players()
+				await self.notify_users()
 				await asyncio.sleep(1)
 				self.countdown -= 1
 
 			self.status = 'started'
-			await self.notify_players()
+			await self.notify_users()
 
 			last_frame = time.time()
 			while self.status != 'finished':
+
+				logger.info(f'game loop')
+
+				if self.status == 'paused':
+					self.pause_timer = self.pause_timer - 0.1
+					if self.pause_timer <= 0:
+						self.status = 'started'
+					await asyncio.sleep(0.1)
+					continue
 				
 				for user_id, user in self.users.items():
 					user.move()
@@ -82,8 +108,7 @@ class Game:
 				self.ball.move()
 
 				await self.check_collisions()
-
-				await self.notify_players()
+				await self.notify_users()
 
 				current_frame = time.time()
 				if current_frame - last_frame < TIME_TO_SLEEP:
@@ -91,7 +116,7 @@ class Game:
 				
 				last_frame = current_frame
 
-			await self.notify_players()
+			await self.notify_users()
 
 
 		except Exception as e:
@@ -148,6 +173,40 @@ class Game:
 		
 		return None
 
+
+	async def pause(self, user_id):
+		if self.status != 'started':
+			return
+
+		self.status = 'paused'
+		self.pause_timer = PAUSE_TIMER
+		self.pause_user_id = user_id
+
+		logger.info(f'pause game by {user_id}')
+		await self.notify_users()
+	
+
+	async def unpause(self, user_id=None):
+		if self.status != 'paused':
+			return
+
+		if user_id and user_id != self.pause_user_id:
+			return
+
+		self.status = 'started'
+		self.pause_timer = None
+		self.pause_user_id = None
+
+		logger.info(f'unpause the game')
+		await self.notify_users()
+
+
+	def quit(self, user_id):
+		logger.info(f'game quit')
+		self.active_users[user_id] = False
+		self.status = 'finished'
+
+
 	async def check_game_finished(self):
 		finished = False
 		for user in self.users.values():
@@ -170,8 +229,8 @@ class Game:
 		user.setMovement(movement)
 
 
-	async def quit(self, user_id):
-		self.status = 'finished'
+	def check_active_users(self):
+		return list(self.active_users.values()).count(True) == 1
 
 
 	def get_user_info(self, user_id):

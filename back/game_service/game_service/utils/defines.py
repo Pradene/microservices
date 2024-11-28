@@ -21,3 +21,5 @@ PADDLE_HEIGHT: int = 64
 POINTS_TO_WIN: int = 10
 
 FPS: int = 60
+
+PAUSE_TIMER: float = 30.0  # Pause timer in sec

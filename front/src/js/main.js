@@ -56,14 +56,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         connectChatSocket()
         connectFriendsSocket()
 
-        const gameID = sessionStorage.getItem('game')
-        if (gameID !== null) {
-            console.log('hello')
-            console.log(gameID)
-            const router = Router.get()
-            router.navigate(`/game/${gameID}/`)
-        }
-        
         const tournamentID = sessionStorage.getItem('tournament')
         if (tournamentID) {
             connectTournamentSocket(tournamentID)

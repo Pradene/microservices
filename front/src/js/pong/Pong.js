@@ -15,263 +15,269 @@ import { WSManager } from '../utils/WebSocketManager.js'
 
 // maybe show the game on socket open
 export class Pong {
-    constructor(mode, id) {
+	constructor(mode, id) {
 
-        if (Pong.instance) {
-            return Pong.instance
-        }
+		if (Pong.instance) {
+			return Pong.instance
+		}
 
-        Pong.instance = this
+		Pong.instance = this
 
-        this.gameMode = mode
-        this.gameID = id
-        
-        const canvas = document.getElementById('canvas')
-        if (!canvas) return
-        canvas.getContext('webgl2')
+		this.gameMode = mode
+		this.gameID = id
+		
+		const canvas = document.getElementById('canvas')
+		if (!canvas) return
+		canvas.getContext('webgl2')
 
-        this.canvas = canvas
-        this.sizes = new Sizes()
-        this.scene = new THREE.Scene()
-        this.camera = new ThreeCamera()
-        this.renderer = new ThreeRenderer()
-        this.environment = new Environment()
-        this.timer = new Timer()
-        this.platform = new Platform()
-        this.stadium = new Stadium()
+		this.canvas = canvas
+		this.sizes = new Sizes()
+		this.scene = new THREE.Scene()
+		this.camera = new ThreeCamera()
+		this.renderer = new ThreeRenderer()
+		this.environment = new Environment()
+		this.timer = new Timer()
+		this.platform = new Platform()
+		this.stadium = new Stadium()
+		this.player = new Player({x: -400 + 20, y: 0})
+		this.opponent = new Player({x: 400 - 20, y: 0})
+		this.ball = new Ball()
 
-        this.player = new Player({x: -400 + 20, y: 0})
-        this.opponent = new Player({x: 400 - 20, y: 0})
+		this.sizes.on('resize', () => this.resize())
 
-        this.ball = new Ball()
+		this.endGame = () => this.end()
+		window.addEventListener('beforeunload', this.endGame)
+	
+		this.keyDown = (e) => this.keyDownHandler(e)
+		window.addEventListener('keydown', this.keyDown)
 
-        this.sizes.on('resize', () => this.resize())
+		this.keyUp = (e) => this.keyUpHandler(e)
+		window.addEventListener('keyup', this.keyUp)
 
-        this.endGame = () => this.end()
-        window.addEventListener('beforeunload', this.endGame)
-    
-        this.keyDown = (e) => this.keyDownHandler(e)
-        window.addEventListener('keydown', this.keyDown)
+		this.touchStart = (e) => this.touchStartHandler(e)
+		window.addEventListener('touchstart', this.touchStart)
 
-        this.keyUp = (e) => this.keyUpHandler(e)
-        window.addEventListener('keyup', this.keyUp)
+		this.touchEnd = (e) => this.touchEndHandler(e)
+		window.addEventListener('touchend', this.touchEnd)
 
-        this.touchStart = (e) => this.touchStartHandler(e)
-        window.addEventListener('touchstart', this.touchStart)
+		this.quitGame = (e) => this.quit(e)
+		window.addEventListener('popstate', this.quitGame)
 
-        this.touchEnd = (e) => this.touchEndHandler(e)
-        window.addEventListener('touchend', this.touchEnd)
+		this.requestId = null
 
-        this.requestId = null
+		this.connectGameWebSocket()
+	}
 
-        this.connectGameWebSocket()
-    }
+	static get() {
+		return Pong.instance || null
+	}
 
-    static get() {
-        return Pong.instance || null
-    }
+	keyDownHandler(e) {
+		switch (e.key) {
+			case 'a':
+				this.updatePlayer(Session.getUserID(), 'UP')
+				break
+			case 'd':
+				this.updatePlayer(Session.getUserID(), 'DOWN')
+				break
 
-    keyDownHandler(e) {
-        switch (e.key) {
-            case 'a':
-                WSManager.send('game', { type: 'update', user_id: Session.getUserID(), movement: 'UP' })
-                break
-            case 'd':
-                WSManager.send('game', { type: 'update', user_id: Session.getUserID(), movement: 'DOWN' })
-                break
-                
-            case 'ArrowLeft':
-                if (this.gameMode === 'local')
-                    WSManager.send('game', { type: 'update', user_id: 0, movement: 'UP' })
-                break
-            case 'ArrowRight':
-                if (this.gameMode === 'local')
-                    WSManager.send('game', { type: 'update', user_id: 0, movement: 'DOWN' })
-                break
-            
-            
-            case 'p':
-                this.camera.setPosition(new THREE.Vector3(0, 4, 10))
-                break
-            case 'o':
-                this.camera.setPosition(new THREE.Vector3(0, 4, -10))
-                break
-            case 'u':
-                this.camera.setPosition(new THREE.Vector3(0, 10, 0))
-                break
-            default:
-                break
-        }
-    }
+			case 'ArrowLeft':
+				if (this.gameMode === 'local')        
+					this.updatePlayer(0, 'UP')
+				break
+			case 'ArrowRight':
+				if (this.gameMode === 'local')
+					this.updatePlayer(0, 'DOWN')
+				break
 
-    keyUpHandler(e) {
-        switch (e.key) {
-            case 'a':
-            case 'd':
-                WSManager.send('game', { type: 'update', user_id: Session.getUserID(), movement: 'NONE'})
-                break
-            case 'ArrowLeft':
-            case 'ArrowRight':
-                if (this.gameMode === 'local')
-                    WSManager.send('game', { type: 'update', user_id: 0, movement: 'NONE'})
-                break
-            default:
-                break
-        }
-    }
+			case 'p':
+				this.pause()
+				break
 
-    touchStartHandler(e) {
-        const position = e.touches[0].clientX
+			case 'q':
+				this.unpause()
+				break
+		
+			default:
+				break
+		}
+	}
 
-        if (position < window.innerWidth / 2) {
-            WSManager.send('game', { type: 'update', user_id: Session.getUserID(), movement: 'UP' })
-        } else {
-            WSManager.send('game', { type: 'update', user_id: Session.getUserID(), movement: 'DOWN' })
-        }
-    }
+	keyUpHandler(e) {
+		switch (e.key) {
+			case 'a':
+			case 'd':
+				this.updatePlayer(Session.getUserID(), 'NONE')
+				break
+			case 'ArrowLeft':
+			case 'ArrowRight':
+				if (this.gameMode === 'local')
+					this.updatePlayer(0, 'NONE')
+				break
+			default:
+				break
+		}
+	}
 
-    touchEndHandler(e) {
-        WSManager.send('game', { type: 'update', user_id: Session.getUserID(), movement: 'NONE'})
-    }
+	touchStartHandler(e) {
+		const position = e.touches[0].clientX
 
-    connectGameWebSocket() {
+		if (position < window.innerWidth / 2) {
+			this.updatePlayer(Session.getUserID(), 'UP')
+		} else {
+			this.updatePlayer(Session.getUserID(), 'DOWN')
+		}
+	}
 
-        let url = undefined
-        const baseURL = `wss://${location.hostname}:${location.port}/ws/game`
-        //adding game id for online game, if id is null it is a local game
-        if (this.gameID) {
-            url = `${baseURL}/remote/${this.gameID}/`
-        } else {
-            url = `${baseURL}/local/`
-        }
+	touchEndHandler(e) {
+		this.updatePlayer(Session.getUserID(), 'NONE')
+	}
 
-        const socket = new WebSocket(url)
-        if (!socket) return
+	connectGameWebSocket() {
 
-        console.log('connected to socket')
-            
-        WSManager.add('game', socket)
+		let url = undefined
+		const baseURL = `wss://${location.hostname}:${location.port}/ws/game`
 
-        socket.onopen = () => {
-            WSManager.send('game', {
-                type: 'ready',
-            })
-        
-            if (this.gameID) {
-                console.log('set session storage')
-                sessionStorage.setItem('game', this.gameID)
-            }
-            
-            this.display()
-        }
-        
-        socket.onmessage = (e) => {
-            const data = JSON.parse(e.data)
-            console.log('data received from game server:', data)
+		//adding game id for online game, if id is null it is a local game
+		if (this.gameID) {
+			url = `${baseURL}/remote/${this.gameID}/`
+		} else {
+			url = `${baseURL}/local/`
+		}
 
-            this.update(data)
-        }
+		const socket = new WebSocket(url)
+		if (!socket) return
+			
+		WSManager.add('game', socket)
 
-        socket.onerror = async (e) => {
-            console.log('WebSocket error: ', e)
+		socket.onopen = () => {
+			WSManager.send('game', {
+				type: 'ready',
+			})
+		
+			if (this.gameID) {
+				console.log('set session storage')
+				sessionStorage.setItem('game', this.gameID)
+			}
+			
+			this.display()
+		}
+		
+		socket.onmessage = (e) => {
+			const data = JSON.parse(e.data)
+			console.log('data received from game server:', data)
 
-            sessionStorage.removeItem('game')
-            socket.close()
-            
-            const router = Router.get()
-            router.back()    
-        }
+			this.update(data)
+		}
 
-        socket.onclose = () => {
-            console.log('Game WebSocket closed')
-        }
-    }
+		socket.onerror = async (e) => {
+			console.log('WebSocket error: ', e)
 
-    end() {
-        Pong.instance = null
+			sessionStorage.removeItem('game')
+			socket.close()
+			
+			const router = Router.get()
+			router.back()    
+		}
 
-        window.removeEventListener('keydown', this.keyDown)
-        window.removeEventListener('keyup', this.keyUp)
-        window.removeEventListener('touchstart', this.touchStart)
+		socket.onclose = (e) => {
+			console.log('Game WebSocket closed', e)
+			if (e.code === 4000) {
+				console.log('game already finished')
+				sessionStorage.removeItem('game')
+			}
+		}
+	}
 
-        if (this.requestId) {
-            window.cancelAnimationFrame(this.requestId)
-            this.requestId = null
-        }
-    }
+	end() {
+		Pong.instance = null
 
-    resize() {
-        this.camera.resize()
-        this.renderer.resize()
-    }
+		window.removeEventListener('keydown', this.keyDown)
+		window.removeEventListener('keyup', this.keyUp)
+		window.removeEventListener('touchstart', this.touchStart)
+		window.removeEventListener('popstate', this.quitGame)
 
-    update(data) {
-        if (data.type === 'player_info') {
-            this.displayPlayersName(data)
+		if (this.requestId) {
+			window.cancelAnimationFrame(this.requestId)
+			this.requestId = null
+		}
+	}
 
-        } else if (data && data.status === 'waiting') {
-            this.timer.create(data.timer)
-            
-        } else if (data && data.status === 'started') {
-            this.player.setPosition(data.player.position.x, data.player.position.y)
-            this.opponent.setPosition(data.opponent.position.x, data.opponent.position.y)
-            this.ball.setPosition(data.ball.position.x, data.ball.position.y)
-            this.displayScore(data)
-            
-        } else if (data && data.status === 'finished') {
-            sessionStorage.removeItem('game')
-            WSManager.remove('game')
-            
-            this.displayScore(data)
+	resize() {
+		this.camera.resize()
+		this.renderer.resize()
+	}
+
+	update(data) {
+		if (data.type === 'player_info') {
+			this.displayPlayersName(data)
+
+		} else if (data && data.status === 'ready') {
+			this.timer.create(data.timer)
+
+		} else if (data && data.status === 'paused') {
+			
+
+		} else if (data && data.status === 'started') {
+			this.player.setPosition(data.player.position.x, data.player.position.y)
+			this.opponent.setPosition(data.opponent.position.x, data.opponent.position.y)
+			this.ball.setPosition(data.ball.position.x, data.ball.position.y)
+			this.displayScore(data)
+			
+		} else if (data && data.status === 'finished') {
+			sessionStorage.removeItem('game')
+			WSManager.remove('game')
+			
+			this.displayScore(data)
 			this.displayResult(data)
 
-            this.ball.remove()
-            this.player.remove()
-            this.opponent.remove()
-            this.platform.remove()
-            this.stadium.remove()
-        }
-    }
-    
-    display() {
-        this.renderer.update()
-        this.requestId = window.requestAnimationFrame(this.display.bind(this))
-    }
+			this.ball.remove()
+			this.player.remove()
+			this.opponent.remove()
+			this.platform.remove()
+			this.stadium.remove()
+		}
+	}
+	
+	display() {
+		this.renderer.update()
+		this.requestId = window.requestAnimationFrame(this.display.bind(this))
+	}
 
-    displayScore(data) {
-        const playerScore = data.player.score
-        const opponentScore = data.opponent.score
+	displayScore(data) {
+		const playerScore = data.player.score
+		const opponentScore = data.opponent.score
 
-        const playerScoreElement = document.querySelector('.scores .player .score')
-        playerScoreElement.textContent = playerScore
-        
-        const opponentScoreElement = document.querySelector('.scores .opponent .score')
-        opponentScoreElement.textContent = opponentScore
-    }
+		const playerScoreElement = document.querySelector('.scores .player .score')
+		playerScoreElement.textContent = playerScore
+		
+		const opponentScoreElement = document.querySelector('.scores .opponent .score')
+		opponentScoreElement.textContent = opponentScore
+	}
 
-    displayPlayersName(data) {
-        const player = data.player
-        const opponent = data.opponent
+	displayPlayersName(data) {
+		const player = data.player
+		const opponent = data.opponent
 
-        const playerName = document.querySelector('.scores .player .username')
-        playerName.textContent = player
+		const playerName = document.querySelector('.scores .player .username')
+		playerName.textContent = player
 
-        const opponentName = document.querySelector('.scores .opponent .username')
-        opponentName.textContent = opponent
-    }
+		const opponentName = document.querySelector('.scores .opponent .username')
+		opponentName.textContent = opponent
+	}
 
 	displayResult(data) {
 		const result = document.getElementById('result')
 		
-        const player = data.player
+		const player = data.player
 		const opponent = data.opponent
 		
-        const playerName = document.querySelector('.scores .player .username').textContent
+		const playerName = document.querySelector('.scores .player .username').textContent
 
 		const wol = document.getElementById('wol')
 		const resmsg = document.getElementById('resmsg')
 		
-        if (player.score > opponent.score) {
+		if (player.score > opponent.score) {
 			wol.textContent = 'You Won !'
 			resmsg.textContent = `Congratulation ${playerName}`
 			const firework1 = document.getElementById('firework1')
@@ -281,18 +287,46 @@ export class Pong {
 			firework2.removeAttribute('hidden')
 			firework3.removeAttribute('hidden')
 		
-        } else {
+		} else {
 			wol.textContent = 'You Lose ...'
 			resmsg.textContent = `Don't give up ${playerName}, you'll do better next time, maybe...`
 		}
 		
-        const button = document.getElementById('leave-game')
+		const button = document.getElementById('leave-game')
 		button.addEventListener('click', async () => await this.leaveGame())
 		result.removeAttribute('hidden')
 	}
 
 	async leaveGame() {
 		const router = Router.get()
-        await router.back()
+		await router.back()
 	}
+
+
+	updatePlayer(user_id, movement) {
+		WSManager.send('game', {
+			'type': 'update',
+			'user_id': user_id,
+			'movement': movement
+		})
+	}
+
+	quit() {
+		WSManager.send('game', {
+			'type': 'quit'
+		})
+	}
+
+	pause() {
+		WSManager.send('game', {
+			'type': 'pause'
+		})
+	}
+
+	unpause() {
+		WSManager.send('game', {
+			'type': 'unpause'
+		})
+	}
+
 }

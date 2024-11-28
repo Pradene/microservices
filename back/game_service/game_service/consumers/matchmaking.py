@@ -69,25 +69,25 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
 		else:
 			logging.error('user is already in queue')
 
+
 	async def join_tournament(self):
 		if len(self.tournament_queue) >= 4:
 			tournament = await database_sync_to_async(
 				Tournament.objects.create
 			)()
 
-			player1 = self.tournament_queue.popleft()
-			player2 = self.tournament_queue.popleft()
-			player3 = self.tournament_queue.popleft()
-			player4 = self.tournament_queue.popleft()
+			p1_id = self.tournament_queue.popleft()
+			p2_id = self.tournament_queue.popleft()
+			p3_id = self.tournament_queue.popleft()
+			p4_id = self.tournament_queue.popleft()
 
-			# await database_sync_to_async(
-			# 	tournament.players.add
-			# )(player1, player2, player3, player4)
+			tournament.user_ids += [p1_id, p2_id, p3_id, p4_id]
 
-			# await self.tournament_found(player1.id, tournament.id)
-			# await self.tournament_found(player2.id, tournament.id)
-			# await self.tournament_found(player3.id, tournament.id)
-			# await self.tournament_found(player4.id, tournament.id)
+			await self.tournament_found(p1_id, tournament.id)
+			await self.tournament_found(p2_id, tournament.id)
+			await self.tournament_found(p3_id, tournament.id)
+			await self.tournament_found(p4_id, tournament.id)
+
 
 	async def tournament_found(self, user_id, tournament_id):
 		channel_name = self.channels.get(user_id)
@@ -101,6 +101,7 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
 				'tournament_id': tournament_id
 			}
 		)
+
 
 	async def tournament_found_response(self, data):
 		tournament_id = data.get('tournament_id')
@@ -118,6 +119,7 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
 
 		else:
 			logging.error('user is already in queue')
+
 
 	async def join_game(self):
 		if len(self.game_queue) >= 2:
@@ -147,6 +149,7 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
 				'game_id': game_id
 			}
 		)
+
 
 	async def game_found_response(self, data):
 		game_id = data.get('game_id')

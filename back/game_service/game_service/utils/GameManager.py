@@ -19,7 +19,7 @@ class GameManager:
 			return Game()
 
 		if game_id not in self.games:
-			game = Game()
+			game = Game(game_id)
 			self.games[game_id] = game
 			return game
 

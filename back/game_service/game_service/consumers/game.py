@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class GameConsumer(AsyncJsonWebsocketConsumer):
 	async def connect(self):
 		self.user_id = self.scope['user_id']
-		logging.info(f'user {self.user_id} connected to Game WebSocket')
+		logger.info(f'user {self.user_id} connected to Game WebSocket')
 
 		self.game_mode = self.scope['url_route']['kwargs']['game_mode']
 		self.game_id = self.scope['url_route']['kwargs']['game_id'] if self.game_mode == 'remote' else '0'
@@ -30,7 +30,6 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
 			await self.close()
 
 		if self.user_id:
-			await self.accept()
 
 			self.game_manager = GameManager()
 
@@ -38,19 +37,32 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
 				self.game = self.game_manager.get_game(self.game_id)
 				if not self.game:
 					self.game = self.game_manager.create_game(self.game_id)
+				
+				if self.game.status == 'finished':
+					await self.close(4000)
+
+				await self.channel_layer.group_add(
+					f'game_{self.game_id}',
+					self.channel_name
+				)
 			
 			elif self.game_mode == 'local':
 				self.game = self.game_manager.create_game()
-				self.game.add_consumer()
+				self.game.add_user()
 				
-			self.game.add_consumer(self)
+			self.game.add_user(self)
+			await self.accept()
 
 		else:
 			await self.close()
 
 
 	async def disconnect(self, close_code):
-		pass
+		if self.user_id and self.game_mode == 'remote':
+			await self.channel_layer.group_discard(
+				f'game_{self.game_id}',
+				self.channel_name
+			)
 
 
 	async def receive(self, text_data):
@@ -62,15 +74,17 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
 
 			if message_type == 'ready':
 				await self.handle_user_ready(data)
-			
 			elif message_type == 'update':
 				await self.handle_user_update(data)
-
 			elif message_type == 'quit':
-				await self.game_manager.quit(self.user_id)
+				await self.handle_user_quit(self.user_id)
+			elif message_type == 'pause':
+				await self.handle_pause(self.user_id)
+			elif message_type == 'unpause':
+				await self.handle_unpause(self.user_id)
 
 		except Exception as e:
-			logging.error(f'error: {e}')
+			logger.error(f'error: {e}')
 
 
 	async def handle_user_ready(self, data):
@@ -83,21 +97,15 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
 				users.append(self.user_id)
 				cache.set(users_key, users, timeout=None)
 
-			await self.channel_layer.group_add(
-				f'game_{self.game_id}',
-				self.channel_name
-			)
-
 			lock_key = f'game:{self.game_id}:lock'
 			lock = cache.add(lock_key, str(uuid.uuid4()), timeout=60)
 
 			if lock:
 				try:
-					if len(users) >= 2:
+					if self.game.status == 'waiting' and len(users) >= 2:
 						await self.start_game()
 				finally:
 					cache.delete(lock_key)
-
 
 		elif self.game_mode == 'local':
 			await self.start_game()
@@ -115,10 +123,38 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
 		self.game.update_user(user_id, movement)
 
 
+	async def handle_user_quit(self, user_id):
+		logger.info(f'user {user_id} want to quit the game')
+		self.game.quit(user_id)
+
+		if self.game_mode == 'remote':
+			game = await database_sync_to_async(
+				Game.objects.get
+			)(id=self.game_id)
+			game.status = 'finished'
+			await database_sync_to_async(game.save)()
+
+
+	async def handle_pause(self, user_id):
+		await self.game.pause(user_id)
+
+
+	async def handle_unpause(self, user_id):
+		await self.game.unpause(user_id)
+
+
+	async def send_error(self, message):
+		await self.send_json({
+			'type': 'error',
+			'message': message
+		})
+
+
 	async def is_user_in_game(self):
 		''' Check if the current user is in the game. '''
 		return await database_sync_to_async(
-			Game.objects
-			.filter(id=self.game_id, user_ids__contains=[self.user_id])
-			.exists
+			Game.objects.filter(
+				id=self.game_id,
+				user_ids__contains=[self.user_id]
+			).exists
 		)()
