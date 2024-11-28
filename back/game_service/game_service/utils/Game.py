@@ -19,57 +19,46 @@ TIME_TO_SLEEP: float = (1 / FPS)
 
 logger = logging.getLogger(__name__)
 
-class LocalGameManager:
-	def __init__(self, mode, id, user_ids):
-		self.user_ids = list(user_ids)
-		
-		self.ball = Ball()
-		self.users = {}
+class Game:
+	def __init__(self):
 		self.countdown = COUNTDOWN
-
 		self.status = 'waiting'
-		self.state = self.initialize_state()
 
-		logging.info(f'users {self.users}')
-		
-		self.observers = []
+		self.ball = Ball()
 
-
-	def initialize_state(self):
-		positions = {
-			self.user_ids[0]: Vector2(-(400 - 20), 0),
-			self.user_ids[1]: Vector2((400 - 20), 0),
-		}
-
-		self.users = {user_id:
-			Player(user_id, positions.get(user_id, Vector2(0, 0)))
-		for user_id in self.user_ids}
-
-		return {
-			'status': self.status,
-			'users': {
-				str(user_id): {
-					'id': self.users[user_id].id,
-					'position': self.users[user_id].position,
-					'score': self.users[user_id].score,
-				} for user_id in self.user_ids
-			},
-			'ball': str(self.ball.position),
-		}
+		self.users = {}
+		self.consumers = []
 
 
-	def add_observer(self, observer):
-		self.observers.append(observer)
+	def add_consumer(self, consumer=None):
+		if consumer is None:
+			user_id = 0
+		else:
+			self.consumers.append(consumer)
+			user_id = consumer.user_id
+
+		self.users[user_id] = Player(user_id, self.get_initial_pos())
 
 
-	def remove_observer(self, observer):
-		self.observers.remove(observer)
+	def get_initial_pos(self):
+		positions = [
+			Vector2((400 - 20), 0),
+			Vector2(-(400 - 20), 0),
+		]
+
+		if len(self.users) < len(positions):
+			return positions[len(self.users)]
+		else:
+			return None
+
+	def remove_consumer(self, consumer):
+		self.consumers.remove(consumer)
 
 
-	async def notify_observers(self):
-		game_state = self.get_game_state()
-		for observer in self.observers:
-			await observer.send_game_state(game_state)
+	async def notify_players(self):
+		for consumer in self.consumers:
+			game_state = self.get_game_state(consumer.user_id)
+			await consumer.send_json(game_state)
 
 
 	async def start_game(self):
@@ -77,12 +66,12 @@ class LocalGameManager:
 			logging.info("Starting game")
 
 			while self.countdown >= 0:
-				await self.notify_observers()
+				await self.notify_players()
 				await asyncio.sleep(1)
 				self.countdown -= 1
 
 			self.status = 'started'
-			await self.notify_observers()
+			await self.notify_players()
 
 			last_frame = time.time()
 			while self.status != 'finished':
@@ -94,7 +83,7 @@ class LocalGameManager:
 
 				await self.check_collisions()
 
-				await self.notify_observers()
+				await self.notify_players()
 
 				current_frame = time.time()
 				if current_frame - last_frame < TIME_TO_SLEEP:
@@ -102,7 +91,7 @@ class LocalGameManager:
 				
 				last_frame = current_frame
 
-			await self.notify_observers()
+			await self.notify_players()
 
 
 		except Exception as e:
@@ -197,15 +186,18 @@ class LocalGameManager:
 		} if user else None
 
 
-	def get_game_state(self):
-		status = self.status
+	def get_game_state(self, user_id):
+		if user_id is None:
+			return
+
+		player_info = self.get_user_info(user_id)
+		opponent_id = next((uid for uid in self.users.keys() if uid != user_id), None)
+		opponent_info = self.get_user_info(opponent_id) if opponent_id is not None else None
 
 		data = {
-			'status': status,
-			'users': {
-				str(user_id): self.get_user_info(user_id)
-				for user_id in self.user_ids
-			},
+			'status': self.status,
+			'player': player_info,
+			'opponent': opponent_info,
 			'ball': {
 				'position': {
 					'x': self.ball.position.x,
@@ -214,7 +206,7 @@ class LocalGameManager:
 			}
 		}
 
-		if status == 'waiting':
+		if self.status == 'waiting':
 			data['timer'] = self.countdown
 
 		return data

@@ -42,7 +42,8 @@ export class Home extends TemplateComponent {
 		const socket = new WebSocket(url)
 		
 		socket.onmessage = async (e) => {
-			await this.handleMessage(e)
+			const data = JSON.parse(e.data)
+			await this.handleMessage(data)
 		}
 
 		WSManager.add('matchmaking', socket)
@@ -53,8 +54,7 @@ export class Home extends TemplateComponent {
 		this.removeLoadingScreen()
 	}
 
-	async handleMessage(e) {
-		const data = JSON.parse(e.data)
+	async handleMessage(data) {
 		const router = Router.get()
 		
 		if (data.type == 'game_found') {

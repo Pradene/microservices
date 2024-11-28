@@ -1,1 +1,2 @@
-from .LocalGameManager import LocalGameManager
+from .Game import Game
+from .GameManager import GameManager
