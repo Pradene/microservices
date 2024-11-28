@@ -61,15 +61,15 @@ export class Chat extends TemplateComponent {
     }
 
     WebSocketMessage(event) {
-        const message = event.message
+        const data = JSON.parse(event.data)
 
-        if (message && message.type === 'message') {
+        if (data.type === 'message') {
             const chatRooms = this.getRef('rooms')
 
-            const chatRoom = chatRooms.querySelector(`[data-room-id='${message.room_id}']`)
+            const chatRoom = chatRooms.querySelector(`[data-room-id='${data.room_id}']`)
 
             const chatRoomMessage = chatRoom.querySelector('.message')
-            chatRoomMessage.textContent = truncateString(message.content, 48)
+            chatRoomMessage.textContent = truncateString(data.content, 48)
 
             // Modify thhe position of the room
             // to become the first element of the list
@@ -102,7 +102,7 @@ export class Chat extends TemplateComponent {
 
         const message = document.createElement('span')
         message.className = 'message'
-        if (room.message.content) {
+        if (room.message) {
             message.textContent = room.message.content
         } else {
             message.textContent = "Send a message..."

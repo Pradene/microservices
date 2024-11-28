@@ -21,11 +21,12 @@ export class ChatRoom extends TemplateComponent {
 
 	async unmount() {
 		const form = this.getRef('form')
-		form.addEventListener('submit', this.sendMessageListener)
+		form.removeEventListener('submit', this.sendMessageListener)
 		
-		window.addEventListener('chatEvent', this.WebsocketMessageListener)
+		window.removeEventListener('chatEvent', this.WebsocketMessageListener)
 		
-		document.querySelector('button.duel-invite').removeEventListener('click', this.sendInvitationListener)
+		const invitationButton = document.querySelector('button.duel-invite')
+		invitationButton.removeEventListener('click', this.sendInvitationListener)
 		
 		await this.cancelAllInvitations()
 	}
