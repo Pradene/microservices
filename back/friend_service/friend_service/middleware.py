@@ -11,7 +11,6 @@ class JWTAuthMiddleware(BaseMiddleware):
 		# Retrieve the token from the cookies in the WebSocket request
 		cookies = self.get_cookies(scope)
 		token = cookies.get('access_token')  # Retrieve the access token from cookies
-		logger.info(f'token: {token}')
 
 		if token:
 			user_id = await self.authenticate_token(token)
