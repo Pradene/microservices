@@ -67,14 +67,14 @@ class OAuthCallbackView(View):
 		
 		if response.status_code != 200:
 			logging.error(f'Error in response from oauth: {response.status_code} = {response.text}')
-			return JsonResponse({'error': 'Failed to obtain token'}, status=400)
+			return HttpResponseRedirect(f'https://localhost:5000/login/')
 	
 		data = response.json()
 		oauth_token = data.get('access_token')
 	
-		user = self.getUser(oauth_token)
+		user = self.get_user(oauth_token)
 		if user is None:
-			return JsonResponse({'error': 'Failed to obtain user information'}, status=400)
+			return HttpResponseRedirect(f'https://localhost:5000/login/')
 
 		login(request, user)
 		
@@ -105,7 +105,7 @@ class OAuthCallbackView(View):
 		return response
 
 
-	def getUser(self, token):		
+	def get_user(self, token):		
 		try:
 			headers = {
 				"Authorization": f"Bearer {token}"
