@@ -71,14 +71,11 @@ class Tournament():
 			# create the games for the current round
 			games = await self.create_round(current_users)
 			self.game_tree[round_number] = games
+			await self.send_tournament_tree()
 
-			# wait 5 sec and notify observers
+			# wait 5 sec and notify users for their next game
 			await asyncio.sleep(5)
-			for game in games:
-				await self.notify_users(game.user_ids, {
-					'type': 'game_found',
-					'id': game.id
-				})
+			await self.send_game_id(games)
 
 			logger.info(f'round created, waiting for winner')
 			
@@ -125,3 +122,29 @@ class Tournament():
 	async def check_game_finished(self, game):
 		# Assume there's a method or a property in the Game model that checks if it's finished
 		return game.status == 'finished'
+
+
+	async def send_game_id(self, games):
+		for game in games:
+			await self.notify_users(game.user_ids, {
+				'type': 'game_found',
+				'id': game.id
+			})
+
+
+	async def send_tournament_tree(self):
+	    """
+	    Construct a serializable representation of the game tree.
+	    :return: A dictionary representing the game tree.
+	    """
+	    tree = {}
+	    for round_number, games in self.game_tree.items():
+	        tree[round_number] = [
+	            {"game_id": game.id, "user_ids": game.user_ids} for game in games
+	        ]
+
+
+	    await self.notify_users(self.users, {
+			'type': 'tournament_info',
+			'tournament': tree
+		})
