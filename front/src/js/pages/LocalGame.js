@@ -10,10 +10,10 @@ export class LocalGame extends TemplateComponent {
     }
 
     async unmount() {
-        WSManager.remove('game')
-
         if (this.game)
             this.game.end()
+        
+        WSManager.remove('game')
     }
 
     async componentDidMount() {

@@ -13,7 +13,7 @@ from .defines import *
 from .Vector import Vector2
 from .intersections import *
 
-from game_service.models import Score, Game
+from game_service.models import GameModel
 
 TIME_TO_SLEEP: float = (1 / FPS)
 
@@ -34,6 +34,7 @@ class Game:
 
 		self.pause_timer = None
 		self.pause_user_id = None
+		self.winner_id = None
 
 
 	def add_user(self, consumer=None):
@@ -93,8 +94,6 @@ class Game:
 			last_frame = time.time()
 			while self.status != 'finished':
 
-				logger.info(f'game loop')
-
 				if self.status == 'paused':
 					self.pause_timer = self.pause_timer - 0.1
 					if self.pause_timer <= 0:
@@ -116,6 +115,7 @@ class Game:
 				
 				last_frame = current_frame
 
+			await self.save_game(self.winner_id)
 			await self.notify_users()
 
 
@@ -184,7 +184,7 @@ class Game:
 
 		logger.info(f'pause game by {user_id}')
 		await self.notify_users()
-	
+
 
 	async def unpause(self, user_id=None):
 		if self.status != 'paused':
@@ -201,10 +201,28 @@ class Game:
 		await self.notify_users()
 
 
-	def quit(self, user_id):
+	async def quit(self, user_id):
 		logger.info(f'game quit')
 		self.active_users[user_id] = False
-		self.status = 'finished'
+
+		if self.game_id is not None:
+			remaining_user_id = self.get_active_user_id()
+			if remaining_user_id is not None:
+				self.status = 'finished'
+				await self.save_game(remaining_user_id)
+	
+	async def save_game(self, winner_id):
+		try:
+			game = await database_sync_to_async(
+				GameModel.objects.get
+			)(id=self.game_id)
+			game.winner_id = winner_id
+			await database_sync_to_async(game.save)()
+		
+		except GameModel.DoesNotExist:
+			logger.error(f'Game {self.game_id} does not exist')
+		except Exception as e:
+			logger.error(f'Cannot save game: {e}')
 
 
 	async def check_game_finished(self):
@@ -212,6 +230,7 @@ class Game:
 		for user in self.users.values():
 			if user.score >= POINTS_TO_WIN:
 				self.status = 'finished'
+				self.winner_id = user.id
 				return True
 		
 		return False
@@ -229,8 +248,18 @@ class Game:
 		user.setMovement(movement)
 
 
-	def check_active_users(self):
-		return list(self.active_users.values()).count(True) == 1
+	def get_active_users_count(self):
+		return list(self.active_users.values()).count(True)
+
+
+	def get_active_user_id(self):
+		# Filter active users
+		active_user_ids = [user_id for user_id, active in self.active_users.items() if active]
+
+		# Return the single active user if only one remains
+		if len(active_user_ids) == 1:
+			return active_user_ids[0]  # Return the Player object
+		return None  # Return None if no user or more than one user is active
 
 
 	def get_user_info(self, user_id):
@@ -265,7 +294,7 @@ class Game:
 			}
 		}
 
-		if self.status == 'waiting':
+		if self.status == 'ready':
 			data['timer'] = self.countdown
 
 		return data

@@ -46,7 +46,11 @@ export class WSManager {
                 socket.send(m)
 
             } else if (socket) {
+                console.log('Cannot send the message now because socket is not opened')
                 this.queueMessage(type, message) // Queue the message if the socket isn't ready
+            
+            } else {
+                console.log('socket is undefined')
             }
 
         } catch (error) {

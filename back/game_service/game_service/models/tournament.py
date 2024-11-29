@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
-class Tournament(models.Model):
+class TournamentModel(models.Model):
 	user_ids = ArrayField(models.IntegerField(), default=list)
 
 	def toJSON(self):

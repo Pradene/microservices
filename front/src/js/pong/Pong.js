@@ -44,9 +44,6 @@ export class Pong {
 		this.ball = new Ball()
 
 		this.sizes.on('resize', () => this.resize())
-
-		this.endGame = () => this.end()
-		window.addEventListener('beforeunload', this.endGame)
 	
 		this.keyDown = (e) => this.keyDownHandler(e)
 		window.addEventListener('keydown', this.keyDown)
@@ -59,9 +56,6 @@ export class Pong {
 
 		this.touchEnd = (e) => this.touchEndHandler(e)
 		window.addEventListener('touchend', this.touchEnd)
-
-		this.quitGame = (e) => this.quit(e)
-		window.addEventListener('popstate', this.quitGame)
 
 		this.requestId = null
 
@@ -97,7 +91,7 @@ export class Pong {
 			case 'q':
 				this.unpause()
 				break
-		
+
 			default:
 				break
 		}
@@ -160,14 +154,13 @@ export class Pong {
 				sessionStorage.setItem('game', this.gameID)
 			}
 			
-			this.display()
+			this.displayGame()
 		}
 		
 		socket.onmessage = (e) => {
 			const data = JSON.parse(e.data)
-			console.log('data received from game server:', data)
-
-			this.update(data)
+			console.log('data received from server:', data)
+			this.updateGame(data)
 		}
 
 		socket.onerror = async (e) => {
@@ -190,12 +183,13 @@ export class Pong {
 	}
 
 	end() {
+		this.quit()
+
 		Pong.instance = null
 
 		window.removeEventListener('keydown', this.keyDown)
 		window.removeEventListener('keyup', this.keyUp)
 		window.removeEventListener('touchstart', this.touchStart)
-		window.removeEventListener('popstate', this.quitGame)
 
 		if (this.requestId) {
 			window.cancelAnimationFrame(this.requestId)
@@ -208,15 +202,18 @@ export class Pong {
 		this.renderer.resize()
 	}
 
-	update(data) {
+	updateGame(data) {
 		if (data.type === 'player_info') {
 			this.displayPlayersName(data)
 
-		} else if (data && data.status === 'ready') {
-			this.timer.create(data.timer)
+		} else if (data.type === 'unpause') {
+
 
 		} else if (data && data.status === 'paused') {
-			
+
+
+		} else if (data && data.status === 'ready') {
+			this.timer.create(data.timer)
 
 		} else if (data && data.status === 'started') {
 			this.player.setPosition(data.player.position.x, data.player.position.y)
@@ -239,9 +236,9 @@ export class Pong {
 		}
 	}
 	
-	display() {
+	displayGame() {
 		this.renderer.update()
-		this.requestId = window.requestAnimationFrame(this.display.bind(this))
+		this.requestId = window.requestAnimationFrame(this.displayGame.bind(this))
 	}
 
 	displayScore(data) {
@@ -253,6 +250,10 @@ export class Pong {
 		
 		const opponentScoreElement = document.querySelector('.scores .opponent .score')
 		opponentScoreElement.textContent = opponentScore
+	}
+
+	displayPause() {
+
 	}
 
 	displayPlayersName(data) {
@@ -312,6 +313,7 @@ export class Pong {
 	}
 
 	quit() {
+		console.log('quitting game')
 		WSManager.send('game', {
 			'type': 'quit'
 		})

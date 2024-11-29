@@ -8,7 +8,7 @@ from collections import deque
 
 from game_service.utils.GameManager import GameManager
 from game_service.utils.defines import *
-from game_service.models import Game, Tournament
+from game_service.models import GameModel, TournamentModel
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
 	async def join_tournament(self):
 		if len(self.tournament_queue) >= 4:
 			tournament = await database_sync_to_async(
-				Tournament.objects.create
+				TournamentModel.objects.create
 			)()
 
 			p1_id = self.tournament_queue.popleft()
@@ -124,7 +124,7 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
 	async def join_game(self):
 		if len(self.game_queue) >= 2:
 			game = await database_sync_to_async(
-				Game.objects.create
+				GameModel.objects.create
 			)()
 
 			p1_id = self.game_queue.popleft()

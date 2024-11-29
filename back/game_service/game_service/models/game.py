@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
-class Game(models.Model):
+class GameModel(models.Model):
 	status = models.CharField(choices=[
 		('waiting', 'Waiting'),
 		('ready', 'Ready'),
@@ -41,7 +41,7 @@ class Game(models.Model):
 
 		return data
 
-class Score(models.Model):
+class ScoreModel(models.Model):
 	game_id = models.IntegerField()
 	user_id = models.IntegerField()
 	score = models.IntegerField(default=0)

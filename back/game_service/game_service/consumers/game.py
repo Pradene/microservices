@@ -13,7 +13,7 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from collections import deque
 
 from game_service.utils import GameManager
-from game_service.models import Game
+from game_service.models import GameModel
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +112,6 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
 
 
 	async def start_game(self):
-		logger.info(f'start game in {self.game_mode}')
 		asyncio.create_task(self.game.start_game())
 
 
@@ -124,15 +123,11 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
 
 
 	async def handle_user_quit(self, user_id):
-		logger.info(f'user {user_id} want to quit the game')
-		self.game.quit(user_id)
+		await self.game.quit(user_id)
 
-		if self.game_mode == 'remote':
-			game = await database_sync_to_async(
-				Game.objects.get
-			)(id=self.game_id)
-			game.status = 'finished'
-			await database_sync_to_async(game.save)()
+		# Remove the other user from game if in local mode
+		if self.game_mode == 'local':
+			await self.game.quit(0)
 
 
 	async def handle_pause(self, user_id):

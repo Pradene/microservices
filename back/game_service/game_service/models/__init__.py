@@ -1,2 +1,2 @@
-from .game import Score, Game
-from .tournament import Tournament
+from .game import ScoreModel, GameModel
+from .tournament import TournamentModel
