@@ -4,6 +4,11 @@ from django.contrib.postgres.fields import ArrayField
 
 class TournamentModel(models.Model):
 	user_ids = ArrayField(models.IntegerField(), default=list)
+	status = models.CharField(choices=[
+		('waiting', 'Waiting'),
+		('started', 'Started'),
+		('finished', 'Finished')
+	], default='waiting')
 
 	def toJSON(self):
 		games = Game.objects.all().filter(tournament_id=self.id).order_by('id')

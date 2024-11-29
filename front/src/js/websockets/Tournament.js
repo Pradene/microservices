@@ -1,10 +1,9 @@
 import { Router } from "../utils/Router.js"
+import { WSManager } from "../utils/WebSocketManager.js"
 
-function handleMessage(event) {
-    const data = JSON.parse(event.data)
-
+function handleMessage(data) {
     if (data.type === 'game_found') {
-        const id = data.game_id
+        const id = data.id
         const url = `/game/${id}/`
 
         const router = Router.get()
@@ -21,9 +20,22 @@ export function connectTournamentSocket(id) {
 
     sessionStorage.setItem('tournament', id)
 
-	socket.onmessage = (event) => handleMessage(event)
+    socket.onopen = (e) => {
+        WSManager.send('tournament', {
+            'type': 'ready'
+        })
+    }
 
-    socket.onclose = () => sessionStorage.removeItem('tournament')
+	socket.onmessage = (e) => {
+        console.log(e)
+        const data = JSON.parse(e.data)
+        
+        handleMessage(data)
+    }
+
+    socket.onclose = () => {
+        sessionStorage.removeItem('tournament')
+    }
 
     return socket
 }

@@ -71,22 +71,23 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
 
 
 	async def join_tournament(self):
-		if len(self.tournament_queue) >= 4:
+		if len(self.tournament_queue) >= 2:
 			tournament = await database_sync_to_async(
 				TournamentModel.objects.create
 			)()
 
 			p1_id = self.tournament_queue.popleft()
 			p2_id = self.tournament_queue.popleft()
-			p3_id = self.tournament_queue.popleft()
-			p4_id = self.tournament_queue.popleft()
+			# p3_id = self.tournament_queue.popleft()
+			# p4_id = self.tournament_queue.popleft()
 
-			tournament.user_ids += [p1_id, p2_id, p3_id, p4_id]
+			# tournament.user_ids += [p1_id, p2_id, p3_id, p4_id]
+			tournament.user_ids += [p1_id, p2_id]
 
 			await self.tournament_found(p1_id, tournament.id)
 			await self.tournament_found(p2_id, tournament.id)
-			await self.tournament_found(p3_id, tournament.id)
-			await self.tournament_found(p4_id, tournament.id)
+			# await self.tournament_found(p3_id, tournament.id)
+			# await self.tournament_found(p4_id, tournament.id)
 
 
 	async def tournament_found(self, user_id, tournament_id):

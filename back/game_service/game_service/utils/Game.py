@@ -76,7 +76,7 @@ class Game:
 			await consumer.send_json(game_state)
 
 
-	async def start_game(self):
+	async def start(self):
 		try:
 			if self.status != 'waiting':
 				return
@@ -217,6 +217,7 @@ class Game:
 				GameModel.objects.get
 			)(id=self.game_id)
 			game.winner_id = winner_id
+			game.status = 'finished'
 			await database_sync_to_async(game.save)()
 		
 		except GameModel.DoesNotExist:

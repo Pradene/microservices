@@ -1,0 +1,6 @@
+- game microservice
+  - game history
+  - tournament
+
+- edit profile, edit auth for username and email
+- room list desactivate click on name and message (to navigate correctly)

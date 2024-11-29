@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class GameConsumer(AsyncJsonWebsocketConsumer):
 	async def connect(self):
-		self.user_id = self.scope['user_id']
+		self.user_id = self.scope.get('user_id')
 		logger.info(f'user {self.user_id} connected to Game WebSocket')
 
 		self.game_mode = self.scope['url_route']['kwargs']['game_mode']
@@ -112,7 +112,7 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
 
 
 	async def start_game(self):
-		asyncio.create_task(self.game.start_game())
+		asyncio.create_task(self.game.start())
 
 
 	async def handle_user_update(self, data):

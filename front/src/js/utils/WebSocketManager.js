@@ -3,10 +3,10 @@ export class WSManager {
     static pendingMessages = {}
 
     static add(type, socket) {
-        if (this.sockets[type]) {
-            console.log(`Already connected to socket type ${type}`)
-            return this.sockets[type]
-        }
+        // if (this.sockets[type]) {
+        //     console.log(`Already connected to socket type ${type}`)
+        //     return this.sockets[type]
+        // }
 
         if (!socket) return null
         
