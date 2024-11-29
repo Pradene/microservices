@@ -3,6 +3,7 @@ import requests
 import jwt
 
 from django.http import JsonResponse
+from django.core.cache import cache
 from django.views import View
 from django.utils.decorators import method_decorator
 
@@ -13,19 +14,23 @@ logger = logging.getLogger(__name__)
 
 @method_decorator(jwt_required, name='dispatch')
 class GameHistoryView(View):
+
 	def get(self, request):
 		user_id = request.user_id
 
 		try:
-			games = GameModel.objects.filter(
-				user_ids__contains=[user_id]
-			)
+			games = GameModel.objects.filter(user_ids__contains=[user_id])
 
 			games_data = []
 			for game in games:
+				# Fetch user data for all users in the game
+				users_data = [
+					self.get_user(request, user_id) for user_id in game.user_ids
+				]
+				
 				game_info = {
 					'id': game.id,
-					'users': game.user_ids,
+					'users': users_data,
 					'winner': game.winner_id
 				}
 				games_data.append(game_info)
@@ -35,3 +40,36 @@ class GameHistoryView(View):
 		except Exception as e:
 			logger.error(f'Error during getting game history: {e}')
 			return JsonResponse({}, status=400)
+
+
+	def get_user(self, request, user_id):
+		"""
+		Retrieve user data from cache or the user service.
+		"""
+		cached_user = cache.get(f'user:{user_id}')
+		if cached_user:
+			return cached_user
+
+		try:
+			token =  request.COOKIES.get('access_token')
+			if not token:
+				raise Exception('Token is missing')
+
+			# Make a request to the user service if the user is not cached
+			headers = {'Authorization': f'Bearer {token}'}
+			response = requests.get(f'http://user-service:8000/api/users/{user_id}/', headers=headers)
+
+			if response.status_code == 200:
+				data = response.json()
+
+				# Cache the user data for future requests
+				cache.set(f'user:{user_id}', data['user'], timeout=60 * 15)
+				return data['user']
+			
+			else:
+				logger.error(f'Error fetching user {user_id} from user service: {response.status_code}')
+				return {}  # Default user data if fetch fails
+		
+		except Exception as e:
+			logger.error(f'Error fetching user {user_id}: {e}')
+			return {}
