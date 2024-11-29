@@ -24,11 +24,15 @@ services:
       OAUTH_SECRET: $OAUTH_SECRET
     ports:
       - '8000:8000'
+    volumes:
+      - ./back/auth_service:/app
     networks:
       - app_network
     depends_on:
-      - redis
-      - auth_db
+      redis:
+        condition: service_started
+      auth_db:
+        condition: service_healthy
 
   auth_db:
     image: postgres:13
@@ -39,7 +43,12 @@ services:
       POSTGRES_PASSWORD: password
     networks:
       - app_network
-  
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_service_user -d auth_service_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
   
   user_service:
     build:
@@ -54,14 +63,17 @@ services:
       DB_PASSWORD: password
       SECRET_KEY: $SECRET_KEY
     volumes:
+      - ./back/user_service:/app
       - media:/app/media
     ports:
       - '8001:8000'
     networks:
       - app_network
     depends_on:
-      - redis
-      - user_db
+      redis:
+        condition: service_started
+      user_db:
+        condition: service_healthy
 
   user_db:
     image: postgres:13
@@ -72,6 +84,11 @@ services:
       POSTGRES_PASSWORD: password
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user_service_user -d user_service_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   game_service:
     build:
@@ -86,14 +103,17 @@ services:
       DB_PASSWORD: password
       SECRET_KEY: $SECRET_KEY
     volumes:
+      - ./back/game_service:/app
       - media:/app/media
     ports:
       - '8002:8000'
     networks:
       - app_network
     depends_on:
-      - redis
-      - game_db
+      redis:
+        condition: service_started
+      game_db:
+        condition: service_healthy
 
   game_db:
     image: postgres:13
@@ -104,6 +124,11 @@ services:
       POSTGRES_PASSWORD: password
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U game_service_user -d game_service_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 
 
@@ -119,13 +144,17 @@ services:
       DB_USER: friend_service_user
       DB_PASSWORD: password
       SECRET_KEY: $SECRET_KEY
-    depends_on:
-      - redis
-      - friend_db
     ports:
       - '8003:8000'
+    volumes:
+      - ./back/friend_service:/app
     networks:
       - app_network
+    depends_on:
+      redis:
+        condition: service_started
+      friend_db:
+        condition: service_healthy
 
   friend_db:
     image: postgres:13
@@ -136,6 +165,11 @@ services:
       POSTGRES_PASSWORD: password
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U friend_service_user -d friend_service_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 
   mail_service:
@@ -146,13 +180,15 @@ services:
       EMAIL_HOST_USER: $EMAIL_HOST_USER
       EMAIL_HOST_PASSWORD: $EMAIL_HOST_PASSWORD
       CELERY_BROKER_URL: redis://redis:6379/0
-    depends_on:
-      - redis
     ports:
       - '8004:8000'
+    volumes:
+      - ./back/mail_service:/app
     networks:
       - app_network
-
+    depends_on:
+      redis:
+        condition: service_started
 
   notification_service:
     build:
@@ -160,12 +196,15 @@ services:
     container_name: notification-service
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
-    depends_on:
-      - redis
     ports:
       - '8005:8000'
+    volumes:
+      - ./back/notification_service:/app
     networks:
       - app_network
+    depends_on:
+      redis:
+        condition: service_started
 
 
   chat_service:
@@ -180,13 +219,17 @@ services:
       DB_USER: chat_service_user
       DB_PASSWORD: password
       SECRET_KEY: $SECRET_KEY
-    depends_on:
-      - redis
-      - chat_db
     ports:
       - '8006:8000'
+    volumes:
+      - ./back/chat_service:/app
     networks:
       - app_network
+    depends_on:
+      redis:
+        condition: service_started
+      chat_db:
+        condition: service_healthy
 
   chat_db:
     image: postgres:13
@@ -197,6 +240,11 @@ services:
       POSTGRES_PASSWORD: password
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chat_service_user -d chat_service_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   nginx:
     build:

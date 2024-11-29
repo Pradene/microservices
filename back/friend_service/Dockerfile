@@ -15,11 +15,6 @@ RUN pip install -r requirements.txt
 COPY . .
 RUN chmod +x script.sh
 
-RUN useradd -ms /bin/bash friend_service_user
-RUN chown -R friend_service_user:friend_service_user /app/friend_service/
-
-USER friend_service_user
-
 EXPOSE 8000
 
 CMD ["/bin/bash", "./script.sh"]
