@@ -28,9 +28,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '*',
-    'localhost',
-    '127.0.0.1',
+    os.environ.get('HOSTNAME'),
     'user-service'
 ]
 
@@ -95,11 +93,11 @@ ASGI_APPLICATION = 'user_service.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST'),
-        'PORT': os.environ.get('DB_PORT'),
+        'HOST': 'user_db',
+        'PORT': os.environ.get('DB_USER_PORT'),
+        'NAME': os.environ.get('DB_USER_NAME'),
+        'USER': os.environ.get('DB_USER_USER'),
+        'PASSWORD': os.environ.get('DB_USER_PASSWORD'),
     }
 }
 

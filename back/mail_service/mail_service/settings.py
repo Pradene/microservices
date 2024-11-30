@@ -28,9 +28,7 @@ SECRET_KEY = 'django-insecure-25td)gj*3!g-6eqo3o3c)1228)cxg840qgzuvkwgrutk-o42m4
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '*',
-    'localhost',
-    '127.0.0.1',
+    os.environ.get('HOSTNAME'),
     'mail-service'
 ]
 

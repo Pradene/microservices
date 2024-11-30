@@ -67,14 +67,14 @@ class OAuthCallbackView(View):
 		
 		if response.status_code != 200:
 			logging.error(f'Error in response from oauth: {response.status_code} = {response.text}')
-			return HttpResponseRedirect(f'https://localhost:5000/login/')
+			return HttpResponseRedirect(f"https://{os.environ.get('HOSTNAME')}:5000/login/")
 	
 		data = response.json()
 		oauth_token = data.get('access_token')
 	
 		user = self.get_user(oauth_token)
 		if user is None:
-			return HttpResponseRedirect(f'https://localhost:5000/login/')
+			return HttpResponseRedirect(f"https://{os.environ.get('HOSTNAME')}:5000/login/")
 
 		login(request, user)
 		
@@ -84,7 +84,7 @@ class OAuthCallbackView(View):
 		access_token = create_jwt(user.id, timedelta(minutes=5))
 		refresh_token = create_jwt(user.id, timedelta(hours=1))
 	
-		response = HttpResponseRedirect(f"https://localhost:5000/")
+		response = HttpResponseRedirect(f"https://{os.environ.get('HOSTNAME')}:5000/")
 	
 		response.set_cookie(
 			'access_token',

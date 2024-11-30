@@ -12,16 +12,7 @@ services:
     build:
       context: ./back/auth_service
     container_name: auth-service
-    environment:
-      CELERY_BROKER_URL: redis://redis:6379/0
-      DB_HOST: auth_db
-      DB_PORT: 5432
-      DB_NAME: auth_service_db
-      DB_USER: auth_service_user
-      DB_PASSWORD: password
-      SECRET_KEY: $SECRET_KEY
-      OAUTH_UID: $OAUTH_UID
-      OAUTH_SECRET: $OAUTH_SECRET
+    env_file: '.env'
     ports:
       - '8000:8000'
     volumes:
@@ -38,13 +29,13 @@ services:
     image: postgres:13
     container_name: auth_db
     environment:
-      POSTGRES_DB: auth_service_db
-      POSTGRES_USER: auth_service_user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: $DB_AUTH_NAME
+      POSTGRES_USER: $DB_AUTH_USER
+      POSTGRES_PASSWORD: $DB_AUTH_PASSWORD
     networks:
       - app_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U auth_service_user -d auth_service_db"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -54,14 +45,7 @@ services:
     build:
       context: ./back/user_service
     container_name: user-service
-    environment:
-      CELERY_BROKER_URL: redis://redis:6379/0
-      DB_HOST: user_db
-      DB_PORT: 5432
-      DB_NAME: user_service_db
-      DB_USER: user_service_user
-      DB_PASSWORD: password
-      SECRET_KEY: $SECRET_KEY
+    env_file: '.env'
     volumes:
       - ./back/user_service:/app
       - media:/app/media
@@ -79,13 +63,13 @@ services:
     image: postgres:13
     container_name: user_db
     environment:
-      POSTGRES_DB: user_service_db
-      POSTGRES_USER: user_service_user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: $DB_USER_NAME
+      POSTGRES_USER: $DB_USER_USER
+      POSTGRES_PASSWORD: $DB_USER_PASSWORD
     networks:
       - app_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user_service_user -d user_service_db"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -94,14 +78,7 @@ services:
     build:
       context: ./back/game_service
     container_name: game-service
-    environment:
-      CELERY_BROKER_URL: redis://redis:6379/0
-      DB_HOST: game_db
-      DB_PORT: 5432
-      DB_NAME: game_service_db
-      DB_USER: game_service_user
-      DB_PASSWORD: password
-      SECRET_KEY: $SECRET_KEY
+    env_file: '.env'
     volumes:
       - ./back/game_service:/app
       - media:/app/media
@@ -119,13 +96,13 @@ services:
     image: postgres:13
     container_name: game_db
     environment:
-      POSTGRES_DB: game_service_db
-      POSTGRES_USER: game_service_user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: $DB_GAME_NAME
+      POSTGRES_USER: $DB_GAME_USER
+      POSTGRES_PASSWORD: $DB_GAME_PASSWORD
     networks:
       - app_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U game_service_user -d game_service_db"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -136,14 +113,7 @@ services:
     build:
       context: ./back/friend_service
     container_name: friend-service
-    environment:
-      CELERY_BROKER_URL: redis://redis:6379/0
-      DB_HOST: friend_db
-      DB_PORT: 5432
-      DB_NAME: friend_service_db
-      DB_USER: friend_service_user
-      DB_PASSWORD: password
-      SECRET_KEY: $SECRET_KEY
+    env_file: '.env'
     ports:
       - '8003:8000'
     volumes:
@@ -160,13 +130,13 @@ services:
     image: postgres:13
     container_name: friend_db
     environment:
-      POSTGRES_DB: friend_service_db
-      POSTGRES_USER: friend_service_user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: $DB_FRIENDS_NAME
+      POSTGRES_USER: $DB_FRIENDS_USER
+      POSTGRES_PASSWORD: $DB_FRIENDS_PASSWORD
     networks:
       - app_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U friend_service_user -d friend_service_db"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -176,10 +146,7 @@ services:
     build:
       context: ./back/mail_service
     container_name: mail-service
-    environment:
-      EMAIL_HOST_USER: $EMAIL_HOST_USER
-      EMAIL_HOST_PASSWORD: $EMAIL_HOST_PASSWORD
-      CELERY_BROKER_URL: redis://redis:6379/0
+    env_file: '.env'
     ports:
       - '8004:8000'
     volumes:
@@ -194,8 +161,7 @@ services:
     build:
       context: ./back/notification_service
     container_name: notification-service
-    environment:
-      CELERY_BROKER_URL: redis://redis:6379/0
+    env_file: '.env'
     ports:
       - '8005:8000'
     volumes:
@@ -211,14 +177,7 @@ services:
     build:
       context: ./back/chat_service
     container_name: chat-service
-    environment:
-      CELERY_BROKER_URL: redis://redis:6379/0
-      DB_HOST: chat_db
-      DB_PORT: 5432
-      DB_NAME: chat_service_db
-      DB_USER: chat_service_user
-      DB_PASSWORD: password
-      SECRET_KEY: $SECRET_KEY
+    env_file: '.env'
     ports:
       - '8006:8000'
     volumes:
@@ -235,13 +194,13 @@ services:
     image: postgres:13
     container_name: chat_db
     environment:
-      POSTGRES_DB: chat_service_db
-      POSTGRES_USER: chat_service_user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: $DB_CHAT_NAME
+      POSTGRES_USER: $DB_CHAT_USER
+      POSTGRES_PASSWORD: $DB_CHAT_PASSWORD
     networks:
       - app_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U chat_service_user -d chat_service_db"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -250,10 +209,10 @@ services:
     build:
       context: ./nginx
       args:
-        HOST_HOSTNAME: $HOST_HOSTNAME
+        HOSTNAME: $HOSTNAME
     container_name: nginx
     environment:
-      HOST_HOSTNAME: $HOST_HOSTNAME
+      HOSTNAME: $HOSTNAME
     volumes:
       - ./front:/app
       - media:/usr/share/nginx/media

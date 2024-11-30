@@ -28,14 +28,13 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = [
-	'localhost',
-	'127.0.0.1',
+	os.environ.get('HOSTNAME'),
 	'chat-service'
 ]
 
 CORS_ALLOWED_ORIGINS = [
-	'http://localhost:3000',
-	'https://localhost:5000',
+	f"http://{os.environ.get('HOSTNAME')}:3000",
+	f"https://{os.environ.get('HOSTNAME')}:5000",
 ]
 
 # Application definition
@@ -89,11 +88,11 @@ WSGI_APPLICATION = 'chat_service.wsgi.application'
 DATABASES = {
 	'default': {
 		'ENGINE': 'django.db.backends.postgresql',
-		'NAME': os.environ.get('DB_NAME'),
-		'USER': os.environ.get('DB_USER'),
-		'PASSWORD': os.environ.get('DB_PASSWORD'),
-		'HOST': os.environ.get('DB_HOST'),
-		'PORT': os.environ.get('DB_PORT'),
+		'HOST': 'chat_db',
+		'PORT': os.environ.get('DB_CHAT_PORT'),
+		'NAME': os.environ.get('DB_CHAT_NAME'),
+		'USER': os.environ.get('DB_CHAT_USER'),
+		'PASSWORD': os.environ.get('DB_CHAT_PASSWORD'),
 	}
 }
 

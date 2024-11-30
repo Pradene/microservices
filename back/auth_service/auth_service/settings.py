@@ -28,9 +28,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '*',
-    'localhost',
-    '127.0.0.1',
+    os.environ.get('HOSTNAME'),
     'auth-service'
 ]
 
@@ -88,11 +86,11 @@ ASGI_APPLICATION = 'auth_service.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST'),
-        'PORT': os.environ.get('DB_PORT'),
+        'HOST': 'auth_db',
+        'PORT': os.environ.get('DB_AUTH_PORT'),
+        'NAME': os.environ.get('DB_AUTH_NAME'),
+        'USER': os.environ.get('DB_AUTH_USER'),
+        'PASSWORD': os.environ.get('DB_AUTH_PASSWORD'),
     }
 }
 
@@ -143,4 +141,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 OAUTH_URL = 'https://api.intra.42.fr'
 OAUTH_UID = os.environ.get('OAUTH_UID')
 OAUTH_SECRET = os.environ.get('OAUTH_SECRET')
-OAUTH_REDIRECT_URI = 'https://localhost:5000/api/auth/oauth/callback/'
+OAUTH_REDIRECT_URI = f"https://{os.environ.get('HOSTNAME')}:5000/api/auth/oauth/callback/"
