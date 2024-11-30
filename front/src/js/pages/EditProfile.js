@@ -68,7 +68,7 @@ export class EditProfile extends TemplateComponent {
         }
     }
 
-    async handleSubmit(e) {
+	async handleSubmit(e) {
         e.preventDefault()
 
         const input = document.getElementById("file-upload")
@@ -99,8 +99,50 @@ export class EditProfile extends TemplateComponent {
             router.back()
 
         } catch (e) {
-            console.log(e)
-            return
+			const data = e.data
+			const errors = data.errors
+
+			this.displayErrors(errors)
+        }
+    }
+
+	displayErrors(errors) {
+		const username = document.getElementById('username')
+        const email = document.getElementById('email')
+        
+        const removeHidden = (element, errorMessage) => {
+            const error = document.createElement('div')
+            error.className = 'form-error'
+            
+            const img = document.createElement('img')
+            img.src = '/assets/error.svg'
+            img.height = 16
+            img.width = 16
+
+            const message = document.createElement('div')
+            message.textContent = errorMessage
+
+            error.appendChild(img)
+            error.appendChild(message)
+
+			const existingError = element.nextElementSibling
+			if (!existingError) {
+				element.insertAdjacentElement('afterend', error)
+			}
+
+			element.classList.add('shake')
+
+			setTimeout(() => {
+				element.classList.remove('shake')
+			}, 300)
+        }
+
+        if (errors['username']) {
+            removeHidden(username, errors['username'])
+        }
+        
+        if (errors['email']) {
+            removeHidden(email, errors['email'])  
         }
     }
 

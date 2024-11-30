@@ -25,4 +25,4 @@ app.config_from_object({
 })
 
 # Automatically discover tasks from registered Django apps
-app.autodiscover_tasks('auth_service.tasks')
+app.autodiscover_tasks(['auth_service'])

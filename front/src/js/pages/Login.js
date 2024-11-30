@@ -106,8 +106,17 @@ export class Login extends TemplateComponent {
 
             error.appendChild(img)
             error.appendChild(message)
-            element.insertAdjacentElement('afterend', error)
 
+			const existingError = element.nextElementSibling
+			if (!existingError) {
+				element.insertAdjacentElement('afterend', error)
+			}
+
+			element.classList.add('shake')
+
+			setTimeout(() => {
+				element.classList.remove('shake')
+			}, 300)
         }
 
         removeHidden(username, error)

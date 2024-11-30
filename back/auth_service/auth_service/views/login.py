@@ -61,7 +61,11 @@ class LoginView(View):
 
 				task = app.send_task(
 					'mail_service.tasks.send_otp_email',
-					args=[email, username, code],
+					args=[
+						user.email,
+						user.username,
+						code
+					],
 					queue='mail_queue'
 				)
 

@@ -5,7 +5,7 @@ from auth_service.celery import app
 from auth_service.models import CustomUser
 
 @app.task(bind=True, max_retries=3, queue='auth_queue')
-def update_user(user_id, username, email, is_2fa_enabled):
+def update_user(self, user_id, username, email, is_2fa_enabled):
     try:
         user = CustomUser.objects.get(id=user_id)
     except CustomUser.DoesNotExist:

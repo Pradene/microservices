@@ -68,7 +68,7 @@ class ProfileView(View):
 		try:
 			profile = Profile.objects.get(user_id=user_id)
 		except Profile.DoesNotExist:
-			return JsonResponse({'error': 'User not found'}, status=400)
+			return JsonResponse({'errors': {'global': 'User not found'}}, status=400)
 
 		username = request.POST.get('username', profile.username)
 		bio = request.POST.get('bio', profile.bio)
@@ -81,7 +81,9 @@ class ProfileView(View):
 			picture = profile.picture
 
 		if Profile.objects.exclude(user_id=profile.user_id).filter(username=username).exists():
-			return JsonResponse({'error': 'Username is already taken'}, status=400)
+			return JsonResponse({'errors': {'username': 'Username is already taken'}}, status=400)
+		if Profile.objects.exclude(user_id=profile.user_id).filter(email=email).exists():
+			return JsonResponse({'errors': {'email': 'Email already linked to another account'}}, status=400)
 
 		profile.username = username
 		profile.email = email
@@ -93,7 +95,12 @@ class ProfileView(View):
 
 		task = app.send_task(
 			'auth_service.tasks.update_user',
-			args=[user_id, username, email, is_2fa_enabled],
+			args=[
+				profile.user_id,
+				profile.username,
+				profile.email,
+				profile.is_2fa_enabled
+			],
 			queue='auth_queue'
 		)
 
