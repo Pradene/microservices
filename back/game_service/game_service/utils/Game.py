@@ -208,6 +208,7 @@ class Game:
 		if self.game_id is not None:
 			uid = self.get_active_user_id()
 			if uid is not None:
+				self.winner_id = uid
 				self.users[uid].score = POINTS_TO_WIN
 				self.status = 'finished'
 	
