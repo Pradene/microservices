@@ -7,3 +7,4 @@ pyjwt==2.8.0
 celery
 redis
 requests
+pyotp==2.9.0
