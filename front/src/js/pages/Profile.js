@@ -76,10 +76,8 @@ export class Profile extends TemplateComponent {
 	async getGames() {
 		try {
 			const url = getURL("api/games/history/")
-			const data = await apiRequest(url)
-			
+			const data = await apiRequest(url)			
 			const games = data.games
-			console.log('games:', games)
 			
 			const container = document.getElementById("games-history")
 			games.forEach((game) => {
@@ -89,21 +87,13 @@ export class Profile extends TemplateComponent {
 			
 		} catch (e) {
 			console.log(e)
-			return
 		}
 	}
 
 	displayGame(game) {
-		let opponent = undefined
-		let player = undefined
-
-		game.users.forEach(user => {
-			if (Session.getUserID() === user.id) {
-				player = user
-			} else {
-				opponent = user
-			}
-		})
+		const users = game.users
+		const player = users.find(user => user.id == this.getProfileID())
+		const opponent = users.find(user => user.id != this.getProfileID())
 
 		const element = document.createElement('div')
 		element.classList.add('game')
