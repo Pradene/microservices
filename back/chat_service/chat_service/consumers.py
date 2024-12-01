@@ -2,6 +2,9 @@ import asyncio
 import typing
 import json
 import logging
+import requests
+
+from datetime import timedelta
 
 from django.core.cache import cache
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
@@ -9,11 +12,9 @@ from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
 
 from chat_service.models import Room, Message, Invitation
+from chat_service.utils import create_jwt
 
 logger = logging.getLogger(__name__)
-
-# from .utils.elapsed_time import elapsed_time
-# from .utils.rooms import is_user_room_member
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
 	async def connect(self):
@@ -265,25 +266,32 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 			if invitation.room_id != room.id:
 				return
 
-			invitation.status = 'accepted'
-
-			await self.channel_layer.group_send(
-				f'chat_{room.id}',
-				{
-					'type': 'invitation',
-					'id': invitation.id,
-					'room_id': room.id,
-					'user_id': invitation.user_id,
-					'status': invitation.status,
-					'game_id': '',
-				}
+			user_ids = [self.user_id, invitation.user_id]
+			token = create_jwt(self.user_id, timedelta(minutes=2))
+			response = await sync_to_async(requests.post)(
+				f'http://game-service:8000/api/games/',
+				json={'user_ids': user_ids},
+				headers={'Authorization': f'Bearer {token}'},
 			)
 
-			# TODO:
-			# need to create a room inside game microservice and send the id back so i can send the id
-			# invitation.game = await database_sync_to_async(Game.objects.create)()
-			# await database_sync_to_async(invitation.game.players.add)(self.user, invitation.sender)
-			# await database_sync_to_async(invitation.save)()
+			if response.status_code == 200:
+				data = response.json()
+				game_id = data.get('game_id')
+				
+				invitation.status = 'accepted'
+				await database_sync_to_async(invitation.save)()
+
+				await self.channel_layer.group_send(
+					f'chat_{room.id}',
+					{
+						'type': 'invitation',
+						'id': invitation.id,
+						'room_id': room.id,
+						'user_id': invitation.user_id,
+						'status': invitation.status,
+						'game_id': game_id,
+					}
+				)
 
 		except Exception as e:
 			logging.error(f'error: {e}')
