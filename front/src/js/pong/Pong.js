@@ -150,7 +150,6 @@ export class Pong {
 			})
 		
 			if (this.gameID) {
-				console.log('set session storage')
 				sessionStorage.setItem('game', this.gameID)
 			}
 			
@@ -159,13 +158,10 @@ export class Pong {
 		
 		socket.onmessage = (e) => {
 			const data = JSON.parse(e.data)
-			console.log('data received from server:', data)
 			this.updateGame(data)
 		}
 
 		socket.onerror = async (e) => {
-			console.log('WebSocket error: ', e)
-
 			sessionStorage.removeItem('game')
 			socket.close()
 			
@@ -174,9 +170,7 @@ export class Pong {
 		}
 
 		socket.onclose = (e) => {
-			console.log('Game WebSocket closed', e)
 			if (e.code === 4000) {
-				console.log('game already finished')
 				sessionStorage.removeItem('game')
 			}
 		}
@@ -203,7 +197,7 @@ export class Pong {
 	}
 
 	updateGame(data) {
-		if (data.type === 'player_info') {
+		if (data.type === 'users_info') {
 			this.displayPlayersName(data)
 
 		} else if (data.type === 'unpause') {
@@ -257,14 +251,15 @@ export class Pong {
 	}
 
 	displayPlayersName(data) {
-		const player = data.player
-		const opponent = data.opponent
+		const users = data.users
+		const player = users.find(user => user.id === Session.getUserID())
+		const opponent = users.find(user => user.id !== Session.getUserID())
 
 		const playerName = document.querySelector('.scores .player .username')
-		playerName.textContent = player
+		playerName.textContent = player.username
 
 		const opponentName = document.querySelector('.scores .opponent .username')
-		opponentName.textContent = opponent
+		opponentName.textContent = opponent.username
 	}
 
 	displayResult(data) {
@@ -313,7 +308,6 @@ export class Pong {
 	}
 
 	quit() {
-		console.log('quitting game')
 		WSManager.send('game', {
 			'type': 'quit'
 		})

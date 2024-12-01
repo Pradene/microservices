@@ -5,6 +5,9 @@ import asyncio
 import time
 import math
 import uuid
+import httpx
+
+from datetime import timedelta
 
 from django.db import transaction
 from django.core.cache import cache
@@ -12,7 +15,7 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from collections import deque
 
-from game_service.utils import GameManager
+from game_service.utils import GameManager, create_jwt
 from game_service.models import GameModel
 
 logger = logging.getLogger(__name__)
@@ -111,7 +114,49 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
 			await self.start_game()
 
 
+	async def send_users_info(self):
+		users_key = f'game:{self.game_id}:users'
+		users = cache.get(users_key, [])
+
+		logger.info(f'users: {users}')
+
+		users_data = []
+		for user in users:
+			user_info = await self.get_user(user)
+			users_data.append(user_info)
+
+		await self.channel_layer.group_send(
+			f'game_{self.game_id}',
+			{
+				'type': 'users_info',
+				'users': users_data
+			}
+		)
+
+	async def users_info(self, event):
+		await self.send_json(event)
+
+
+	async def get_user(self, user_id):
+		try:
+			async with httpx.AsyncClient() as client:
+				token = create_jwt(self.user_id, timedelta(minutes=2))
+				headers = {
+					'Authorization': f'Bearer {token}'
+				}
+
+				response = await client.get(f"http://user-service:8000/api/users/{user_id}/", headers=headers)
+				if response.status_code == 200:
+					data = response.json()  # or use a custom user serializer
+					return data.get('user')
+				else:
+					return None
+		except httpx.RequestError as e:
+			raise Exception(f"Error querying the user service: {str(e)}")
+
+
 	async def start_game(self):
+		await self.send_users_info()
 		asyncio.create_task(self.game.start())
 
 
