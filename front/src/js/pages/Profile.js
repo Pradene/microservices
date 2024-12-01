@@ -76,17 +76,16 @@ export class Profile extends TemplateComponent {
 	async getGames() {
 		try {
 			const url = getURL("api/games/history/")
-			const games = await apiRequest(url)
-
-			const container = document.getElementById("games-history")
+			const data = await apiRequest(url)
+			
+			const games = data.games
 			console.log('games:', games)
 			
-			// games.forEach((game) => {
-			// 	console.log('hello')
-			// 	const element = this.displayGame(game)
-			// 	console.log(element)
-			// 	container.appendChild(element)
-			// })
+			const container = document.getElementById("games-history")
+			games.forEach((game) => {
+				const element = this.displayGame(game)
+				container.appendChild(element)
+			})
 			
 		} catch (e) {
 			console.log(e)
@@ -97,12 +96,12 @@ export class Profile extends TemplateComponent {
 	displayGame(game) {
 		let opponent = undefined
 		let player = undefined
-		game.players.forEach(p => {
-			console.log(p)
-			if (Session.getUserID() === p.id) {
-				player = p
+
+		game.users.forEach(user => {
+			if (Session.getUserID() === user.id) {
+				player = user
 			} else {
-				opponent = p
+				opponent = user
 			}
 		})
 

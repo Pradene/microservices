@@ -7,7 +7,7 @@ from django.core.cache import cache
 from django.views import View
 from django.utils.decorators import method_decorator
 
-from game_service.models import GameModel
+from game_service.models import GameModel, ScoreModel
 from game_service.decorators import jwt_required
 
 logger = logging.getLogger(__name__)
@@ -23,15 +23,26 @@ class GameHistoryView(View):
 
 			games_data = []
 			for game in games:
-				# Fetch user data for all users in the game
-				users_data = [
-					self.get_user(request, user_id) for user_id in game.user_ids
-				]
-				
+				# Fetch scores for the game
+				scores = {score.user_id: score.score for score in ScoreModel.objects.filter(game_id=game.id)}
+
+				# Fetch user data and embed score
+				users_data = []
+				for uid in game.user_ids:
+					user_data = self.get_user(request, uid)
+					if user_data:
+						users_data.append({
+							'id': user_data['id'],
+							'username': user_data['username'],
+							'picture': user_data['picture'],
+							'score': scores.get(uid, 0)  # Default score is 0 if not found
+						})
+					
+
 				game_info = {
 					'id': game.id,
 					'users': users_data,
-					'winner': game.winner_id
+					'winner_id': game.winner_id
 				}
 				games_data.append(game_info)
 

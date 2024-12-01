@@ -1,5 +1,4 @@
 - game microservice
-  - game history
   - tournament
-  - game result
-  - game users
+
+- 2fa

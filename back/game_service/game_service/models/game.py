@@ -49,6 +49,9 @@ class ScoreModel(models.Model):
 	class Meta:
 		unique_together = ('game_id', 'user_id')
 
+	def __str__(self):
+		return f'user_id {self.user_id} scored {self.score} points in game {self.game_id}'
+
 	def toJSON(self):
 		return {
 			'user_id': self.user_id,
