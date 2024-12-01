@@ -12,6 +12,7 @@ export class Profile extends TemplateComponent {
 	async componentDidMount() {
 		await this.getUser()
 		await this.getGames()
+		await this.getStats()
 	}
 
 	async getUser() {
@@ -45,15 +46,16 @@ export class Profile extends TemplateComponent {
 			
 			const buttonContainer = document.getElementById("buttons")
 			if (id == Session.getUserID()) {
-				const logoutButton = document.createElement("logout-button")
-				buttonContainer.appendChild(logoutButton)
 
 				const editBtton = document.createElement("a")
 				editBtton.href = `/users/${Session.getUserID()}/edit/`
 				editBtton.dataset.link = ""
-				editBtton.textContent = "Edit profile"
+				editBtton.textContent = "Edit"
 				editBtton.classList.add('button')
 				buttonContainer.appendChild(editBtton)
+
+				const logoutButton = document.createElement("logout-button")
+				buttonContainer.appendChild(logoutButton)
 
 			} else {
 				const button = document.createElement("friend-button")
