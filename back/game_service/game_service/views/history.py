@@ -19,7 +19,7 @@ class GameHistoryView(View):
 		user_id = request.user_id
 
 		try:
-			games = GameModel.objects.filter(user_ids__contains=[user_id]).order_by('created_at')
+			games = GameModel.objects.filter(user_ids__contains=[user_id]).order_by('-created_at')
 
 			games_data = []
 			for game in games:
