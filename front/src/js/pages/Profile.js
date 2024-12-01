@@ -23,8 +23,6 @@ export class Profile extends TemplateComponent {
 			const data = await apiRequest(url)
 			const user = data.user
 
-			console.log('user:', user)
-
 			const picture = document.getElementById("profile-picture")
 			picture.src = user.picture
 
