@@ -33,21 +33,21 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
 			await self.close()
 
 		if self.user_id:
-			try:
-				game = await database_sync_to_async(
-					GameModel.objects.get
-				)(id=self.game_id)
-			except GameModel.DoesNotExist:
-				await self.close()
-				return
-
-			if game.status == 'finished':
-				await self.close()
-				return
-
 			self.game_manager = GameManager()
 
 			if self.game_mode == 'remote':
+				try:
+					game = await database_sync_to_async(
+						GameModel.objects.get
+					)(id=self.game_id)
+				except GameModel.DoesNotExist:
+					await self.close()
+					return
+
+				if game.status == 'finished':
+					await self.close()
+					return
+
 				self.game = self.game_manager.get_game(self.game_id)
 				if not self.game:
 					self.game = self.game_manager.create_game(self.game_id)
