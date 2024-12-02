@@ -56,6 +56,7 @@ class LoginView(View):
 				return response
 			
 			else:
+				# Generate an OTP
 				# code = OTP.generate(user)
 				code = 000000
 
