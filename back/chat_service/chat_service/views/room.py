@@ -4,6 +4,7 @@ import requests
 
 from datetime import timedelta
 
+from django.core.cache import cache
 from django.views import View
 from django.db.models import Value
 from django.http import JsonResponse
@@ -58,7 +59,7 @@ class RoomView(View):
 
 			users_data = []
 			for uid in room.user_ids:
-				user_data = self.get_user_by_id(user_id, uid)
+				user_data = self.get_user(request, uid)
 				if user_data:
 					users_data.append({
 						'id': user_data.get('id'),
@@ -92,20 +93,25 @@ class RoomView(View):
 				sorted_queryset = sorted(queryset, key=lambda x: x['created_at'])
 				latest_message = sorted_queryset[-1] if sorted_queryset else None
 
+				user_ids = [uid for uid in room.user_ids if uid != user_id]
+				users_data = []
+				for uid in user_ids:
+					user_info = self.get_user(request, uid)
+					users_data.append(user_info)
+				room_name = ", ".join(user['username'] for user in users_data if user.get('username'))
+
 				if latest_message:
 					rooms_data.append({
 						'id': room.id,
+						'name': room_name,
 						'message': {
 							'content': latest_message['content'] if latest_message['source'] == 'message' else f"Invitation {latest_message['status']}",
-							'user': {
-								'username': '',
-								'picture': '',
-							},
 						},
 					})
 				else:
 					rooms_data.append({
 						'id': room.id,
+						'name': room_name,
 					})
 
 
@@ -160,23 +166,35 @@ class RoomView(View):
 
 		return JsonResponse({'message': 'Room updated'}, status=200)
 
-	def get_user_by_id(self, user_id, friend_id):
-		try:
-			url = f'http://user-service:8000/api/users/{friend_id}/'
-			token = create_jwt(user_id, timedelta(minutes=2))
-			headers = {
-				'Authorization': f'Bearer {token}'
-			}
 
-			response = requests.get(url, headers=headers)
+	def get_user(self, request, user_id):
+		"""
+		Retrieve user data from cache or the user service.
+		"""
+		cached_user = cache.get(f'user:{user_id}')
+		if cached_user:
+			return cached_user
+
+		try:
+			token =  request.COOKIES.get('access_token')
+			if not token:
+				raise Exception('Token is missing')
+
+			# Make a request to the user service if the user is not cached
+			headers = {'Authorization': f'Bearer {token}'}
+			response = requests.get(f'http://user-service:8000/api/users/{user_id}/', headers=headers)
+
 			if response.status_code == 200:
 				data = response.json()
-				user = data.get('user')
-				return user
 
+				# Cache the user data for future requests
+				cache.set(f'user:{user_id}', data['user'], timeout=60 * 15)
+				return data.get('user')
+			
 			else:
-				return None
-
+				logger.error(f'Error fetching user {user_id} from user service: {response.status_code}')
+				return {}  # Default user data if fetch fails
+		
 		except Exception as e:
-			logger.error(f'error: {str(e)}')
-			return None
+			logger.error(f'Error fetching user {user_id}: {e}')
+			return {}

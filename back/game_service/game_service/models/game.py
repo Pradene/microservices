@@ -13,6 +13,7 @@ class GameModel(models.Model):
 	user_ids = ArrayField(models.IntegerField(), default=list)
 	tournament_id = models.IntegerField(blank=True, null=True)
 	winner_id = models.IntegerField(null=True)
+	created_at = models.DateTimeField(auto_now_add=True)
 
 	def set_winner(self, user_id):
 		if user_id in self.user_ids:
@@ -48,6 +49,9 @@ class ScoreModel(models.Model):
 
 	class Meta:
 		unique_together = ('game_id', 'user_id')
+
+	def __str__(self):
+		return f'user_id {self.user_id} scored {self.score} points in game {self.game_id}'
 
 	def toJSON(self):
 		return {

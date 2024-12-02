@@ -26,6 +26,18 @@ class TournamentConsumer(AsyncJsonWebsocketConsumer):
 
 		if self.user_id:
 			self.tournament_id = self.scope['url_route']['kwargs']['tournament_id']
+			
+			try:
+				tournament = await database_sync_to_async(
+					TournamentModel.objects.get
+				)(id=self.tournament_id)
+			except TournamentModel.DoesNotExist:
+				await self.close()
+				return
+
+			if tournament.status == 'finished':
+				await self.close()
+				return
 
 			self.tournament_manager = TournamentManager()
 

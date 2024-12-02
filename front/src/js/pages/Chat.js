@@ -87,18 +87,12 @@ export class Chat extends TemplateComponent {
         link.href = `/chat/${room.id}/`
         link.dataset.link = ''
 
-        const imgContainer = document.createElement('div')
-        imgContainer.className = 'profile-picture'
-
-        const img = document.createElement('img')
-        // img.src = room.picture
-
         const infoContainer = document.createElement('div')
         infoContainer.className = 'info'
 
         const name = document.createElement('span')
         name.className = 'name'
-        // name.textContent = room.name
+        name.textContent = room.name
 
         const message = document.createElement('span')
         message.className = 'message'
@@ -109,8 +103,6 @@ export class Chat extends TemplateComponent {
         }
 
         element.appendChild(link)
-        link.appendChild(imgContainer)
-        imgContainer.appendChild(img)
         link.appendChild(infoContainer)
         infoContainer.appendChild(name)
         infoContainer.appendChild(message)

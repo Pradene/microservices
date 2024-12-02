@@ -12,6 +12,7 @@ export class Profile extends TemplateComponent {
 	async componentDidMount() {
 		await this.getUser()
 		await this.getGames()
+		await this.getStats()
 	}
 
 	async getUser() {
@@ -21,8 +22,6 @@ export class Profile extends TemplateComponent {
 			
 			const data = await apiRequest(url)
 			const user = data.user
-
-			console.log('user:', user)
 
 			const picture = document.getElementById("profile-picture")
 			picture.src = user.picture
@@ -45,15 +44,16 @@ export class Profile extends TemplateComponent {
 			
 			const buttonContainer = document.getElementById("buttons")
 			if (id == Session.getUserID()) {
-				const logoutButton = document.createElement("logout-button")
-				buttonContainer.appendChild(logoutButton)
 
 				const editBtton = document.createElement("a")
 				editBtton.href = `/users/${Session.getUserID()}/edit/`
 				editBtton.dataset.link = ""
-				editBtton.textContent = "Edit profile"
+				editBtton.textContent = "Edit"
 				editBtton.classList.add('button')
 				buttonContainer.appendChild(editBtton)
+
+				const logoutButton = document.createElement("logout-button")
+				buttonContainer.appendChild(logoutButton)
 
 			} else {
 				const button = document.createElement("friend-button")
@@ -74,35 +74,24 @@ export class Profile extends TemplateComponent {
 	async getGames() {
 		try {
 			const url = getURL("api/games/history/")
-			const games = await apiRequest(url)
-
-			const container = document.getElementById("games-history")
-			console.log('games:', games)
+			const data = await apiRequest(url)			
+			const games = data.games
 			
-			// games.forEach((game) => {
-			// 	console.log('hello')
-			// 	const element = this.displayGame(game)
-			// 	console.log(element)
-			// 	container.appendChild(element)
-			// })
+			const container = document.getElementById("games-history")
+			games.forEach((game) => {
+				const element = this.displayGame(game)
+				container.appendChild(element)
+			})
 			
 		} catch (e) {
 			console.log(e)
-			return
 		}
 	}
 
 	displayGame(game) {
-		let opponent = undefined
-		let player = undefined
-		game.players.forEach(p => {
-			console.log(p)
-			if (Session.getUserID() === p.id) {
-				player = p
-			} else {
-				opponent = p
-			}
-		})
+		const users = game.users
+		const player = users.find(user => user.id == this.getProfileID())
+		const opponent = users.find(user => user.id != this.getProfileID())
 
 		const element = document.createElement('div')
 		element.classList.add('game')

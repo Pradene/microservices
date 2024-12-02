@@ -5,9 +5,11 @@ from datetime import timedelta
 
 from django.views import View
 from django.http import JsonResponse
-
 from django.contrib.auth import authenticate, login
-from auth_service.utils.jwt import create_jwt
+
+from auth_service.utils import create_jwt
+from auth_service.models import OTP
+from auth_service.celery import app
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +58,9 @@ class LoginView(View):
 				return response
 			
 			else:
-				# Generate an OTP
-				# code = OTP.generate(user)
-				code = 000000
+				request.session['2fa_user_id'] = user.id
+				code = OTP.generate(user.id)
+				logger.info(f'OTP code for user {user.id}: {code}')
 
 				task = app.send_task(
 					'mail_service.tasks.send_otp_email',
@@ -70,8 +72,8 @@ class LoginView(View):
 					queue='mail_queue'
 				)
 
-				return JsonResponse({'message': '2fa need an implementation'}, status=200)
+				return JsonResponse({'2fa': True}, status=200)
 		
 		except Exception as e:
-			logger.error(f'error: {e}')
+			logger.error(f'Error during the login: {e}')
 			return JsonResponse({'error': 'An error occuried during while creating the user'}, status=400)

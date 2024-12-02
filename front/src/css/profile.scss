@@ -34,11 +34,6 @@
       flex-direction: column;
       flex: 1;
       width: 100%;
-
-      .buttons {
-        display: flex;
-        gap: 12px;
-      }
       
       .level {
         display: flex;
@@ -50,8 +45,8 @@
         height: 12px;
         width: 100%;
         border-radius: 12px;
-        padding: 0px -2px;
         color: var(--fifth-color);
+        margin-bottom: 12px;
         
         &::-webkit-progress-value {
           background: var(--fifth-color);
@@ -60,6 +55,12 @@
         &::-moz-progress-bar {
           background: var(--fifth-color);
         }
+      }
+
+      #buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 6px;
       }
     }
   }

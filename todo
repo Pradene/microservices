@@ -1,6 +1,6 @@
 - game microservice
-  - game history
   - tournament
+<<<<<<< HEAD
   - game result
   - game users
 
@@ -8,3 +8,5 @@
 - chat room list desactivate click on name and message (to navigate correctly)
 
 - otp code for 2fa
+=======
+>>>>>>> refs/remotes/origin/main

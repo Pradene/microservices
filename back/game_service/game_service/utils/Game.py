@@ -13,7 +13,7 @@ from .defines import *
 from .Vector import Vector2
 from .intersections import *
 
-from game_service.models import GameModel
+from game_service.models import GameModel, ScoreModel
 
 TIME_TO_SLEEP: float = (1 / FPS)
 
@@ -206,16 +206,30 @@ class Game:
 		self.active_users[user_id] = False
 
 		if self.game_id is not None:
-			remaining_user_id = self.get_active_user_id()
-			if remaining_user_id is not None:
+			uid = self.get_active_user_id()
+			if uid is not None:
+				self.winner_id = uid
+				self.users[uid].score = POINTS_TO_WIN
 				self.status = 'finished'
-				await self.save_game(remaining_user_id)
+	
 	
 	async def save_game(self, winner_id):
 		try:
 			game = await database_sync_to_async(
 				GameModel.objects.get
 			)(id=self.game_id)
+
+			logger.info(self.users)
+			for user_id, user in self.users.items():
+				logger.info(f'user id: {user.id} {user_id}')
+				score = await database_sync_to_async(ScoreModel.objects.create)(
+					game_id=game.id,
+					user_id=user.id,
+					score=user.score
+				)
+
+				logger.info(score)
+
 			game.winner_id = winner_id
 			game.status = 'finished'
 			await database_sync_to_async(game.save)()

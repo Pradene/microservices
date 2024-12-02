@@ -27,9 +27,8 @@ export function connectTournamentSocket(id) {
     }
 
 	socket.onmessage = (e) => {
-        console.log(e)
         const data = JSON.parse(e.data)
-        
+        console.log(data)
         handleMessage(data)
     }
 

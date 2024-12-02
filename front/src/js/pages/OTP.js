@@ -40,7 +40,6 @@ export class OTP extends TemplateComponent {
 
 	async sendOTP() {
 		try {
-			console.log('otp')
 			const url = getURL('api/auth/otp/')
 			const data = await apiRequest(url)
 		
@@ -58,7 +57,7 @@ export class OTP extends TemplateComponent {
 			if (input.value.length != 6)
 				throw new Error('Incomplete code')
 			
-			const url = getURL('api/auth/otp/verify/')
+			const url = getURL('api/auth/otp/')
 			const data = await apiRequest(url, {
 				method: 'POST', 
 				body: {

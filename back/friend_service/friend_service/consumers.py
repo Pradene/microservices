@@ -25,7 +25,7 @@ class FriendsConsumer(AsyncWebsocketConsumer):
 		logger.info(f'User {self.user_id} try to connect to friend consumer')
 
 		if self.user_id is not None:
-			self.user = await self.get_user_by_id(self.user_id)
+			self.user = await self.get_user(self.user_id)
 			if not self.user:
 				await self.close()
 
@@ -69,7 +69,7 @@ class FriendsConsumer(AsyncWebsocketConsumer):
 
 		friend = None
 		try:
-			friend = await self.get_user_by_id(friend_id)
+			friend = await self.get_user(friend_id)
 		except Exception as e:
 			return await self.send(text_data=json.dumps({
 				'error': f'Error will fetching friend: {str(e)}'
@@ -142,8 +142,8 @@ class FriendsConsumer(AsyncWebsocketConsumer):
 
 		await database_sync_to_async(friendship.delete)()
 		
-		user_data = await self.get_user_by_id(self.user_id)
-		friend_data = await self.get_user_by_id(friend_id)
+		user_data = await self.get_user(self.user_id)
+		friend_data = await self.get_user(friend_id)
 
 		logging.info(f'friend: {friend_data}')
 		logging.info(f'user: {user_data}')
@@ -185,8 +185,8 @@ class FriendsConsumer(AsyncWebsocketConsumer):
 			logger.error(f'Error saving the status of friendship: {str(e)}')
 			return
 
-		user_data = await self.get_user_by_id(self.user_id)
-		friend_data = await self.get_user_by_id(friend_id)
+		user_data = await self.get_user(self.user_id)
+		friend_data = await self.get_user(friend_id)
 
 		logging.info(f'friend: {friend_data}')
 		logging.info(f'user: {user_data}')
@@ -235,8 +235,8 @@ class FriendsConsumer(AsyncWebsocketConsumer):
 		# Delete the friend request
 		await database_sync_to_async(friendship.delete)()
 		
-		user_data = await self.get_user_by_id(self.user_id)
-		friend_data = await self.get_user_by_id(friend_id)
+		user_data = await self.get_user(self.user_id)
+		friend_data = await self.get_user(friend_id)
 
 		await self.channel_layer.group_send(
 			f'user_{friend_id}',
@@ -272,8 +272,8 @@ class FriendsConsumer(AsyncWebsocketConsumer):
 		await database_sync_to_async(friendship.delete)()
 		logging.info(f'Friend removed')
 
-		user_data = await self.get_user_by_id(self.user_id)
-		friend_data = await self.get_user_by_id(friend_id)
+		user_data = await self.get_user(self.user_id)
+		friend_data = await self.get_user(friend_id)
 
 		await self.channel_layer.group_send(
 			f'user_{self.user_id}',
@@ -303,7 +303,7 @@ class FriendsConsumer(AsyncWebsocketConsumer):
 			'user': user
 		}))
 
-	async def get_user_by_id(self, user_id):
+	async def get_user(self, user_id):
 		try:
 			async with httpx.AsyncClient() as client:
 				token = create_jwt(self.user_id, timedelta(minutes=2))

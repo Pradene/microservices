@@ -269,8 +269,6 @@ export class ChatRoom extends TemplateComponent {
 		const messageContainer = document.createElement('div')
 		messageContainer.className = 'content'
 
-		// TODO:
-		// insert type in message data inside backend for invitation and message diff
 		if (message.type === 'invitation') {
 			messageContainer.dataset.invitationId = message.id
 			this.displayInvitation(messageContainer, message)
