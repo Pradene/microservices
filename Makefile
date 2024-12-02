@@ -10,8 +10,8 @@ endif
 all: ${NAME}
 
 ${NAME}:
-	HOST_HOSTNAME=$(HOST_HOSTNAME) docker compose build --parallel
-	HOST_HOSTNAME=$(HOST_HOSTNAME) docker compose up
+	docker compose build --parallel
+	docker compose up
 
 up:
 	docker compose up -d

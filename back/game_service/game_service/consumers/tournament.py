@@ -88,7 +88,7 @@ class TournamentConsumer(AsyncJsonWebsocketConsumer):
 
 		if lock:
 			try:
-				if self.tournament.status == 'waiting' and len(users) >= 2:
+				if self.tournament.status == 'waiting' and len(users) >= TOURNAMENT_USERS_NUMBER:
 					await self.start_tournament()
 			finally:
 				cache.delete(lock_key)

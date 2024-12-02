@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
 class GameStatView(View):
 
 	def get(self, request):
-		user_id = request.user_id
+		user_id = request.GET.get('user_id')
+		if user_id is None:
+			return JsonResponse({'error': 'you have to pass an user id'}, status=400)
 
 		try:
 			games = GameModel.objects.filter(
