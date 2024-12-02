@@ -29,6 +29,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
 	os.environ.get('HOSTNAME'),
+	'localhost',
 	'game-service'
 ]
 

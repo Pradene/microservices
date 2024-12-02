@@ -34,6 +34,8 @@ export function connectTournamentSocket(id) {
 
     socket.onclose = () => {
         sessionStorage.removeItem('tournament')
+        // const router = Router.get()
+        // router.navigate('/')
     }
 
     return socket

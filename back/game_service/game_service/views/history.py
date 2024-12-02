@@ -1,6 +1,7 @@
 import logging
 import requests
 import jwt
+import json
 
 from django.http import JsonResponse
 from django.core.cache import cache
@@ -16,10 +17,15 @@ logger = logging.getLogger(__name__)
 class GameHistoryView(View):
 
 	def get(self, request):
-		user_id = request.user_id
+		user_id = request.GET.get('user_id')
+		if user_id is None:
+			return JsonResponse({'error': 'you have to pass an user id'}, status=400)
 
 		try:
-			games = GameModel.objects.filter(user_ids__contains=[user_id]).order_by('-created_at')
+			games = GameModel.objects.filter(
+				user_ids__contains=[user_id],
+				status='finished'
+			).order_by('-created_at')
 
 			games_data = []
 			for game in games:

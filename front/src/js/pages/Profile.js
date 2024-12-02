@@ -73,8 +73,8 @@ export class Profile extends TemplateComponent {
 
 	async getGames() {
 		try {
-			const url = getURL("api/games/history/")
-			const data = await apiRequest(url)			
+			const url = getURL(`api/games/history/?user_id=${this.getProfileID()}`)
+			const data = await apiRequest(url)
 			const games = data.games
 			
 			const container = document.getElementById("games-history")
@@ -133,38 +133,9 @@ export class Profile extends TemplateComponent {
 		return element
 	}
 
-	displayTournament(game) {
-		const element = document.createElement('div')
-		element.classList.add('game', 'tournament')
-		element.addEventListener('click', (event) => {
-			document.location = "/tournament/" + game.id
-		})
-
-		const player = document.createElement('div')
-		player.classList.add('player')
-		const playerImgContainer = document.createElement('div')
-		playerImgContainer.classList.add('profile-picture')
-		const playerImg = document.createElement('img')
-		playerImg.src = game.winner.picture
-		const playerUsername = document.createElement('p')
-		playerUsername.textContent = game.winner.username
-
-		const won = document.createElement('p')
-		won.textContent = game.winner.id == this.getProfileID() ? "Won" : "Lost"
-
-		playerImgContainer.appendChild(playerImg)
-		player.appendChild(playerImgContainer)
-		player.appendChild(playerUsername)
-
-		element.appendChild(player)
-		element.appendChild(won)
-
-		return element
-	}
-
 	async getStats() {
 		try {
-			const url = getURL("api/games/stats/")
+			const url = getURL(`api/games/stats/?user_id=${this.getProfileID()}`)
 			const data = await apiRequest(url)
 
 			this.displayStats(data)
