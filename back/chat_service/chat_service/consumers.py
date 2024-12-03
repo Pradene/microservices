@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
 	async def connect(self):
-		self.user_id = self.scope['user_id']
+		self.user_id = self.scope.get('user_id')
 		logging.info(f'user id: {self.user_id}')
 
 		if self.user_id:

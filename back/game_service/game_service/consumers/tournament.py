@@ -32,10 +32,17 @@ class TournamentConsumer(AsyncJsonWebsocketConsumer):
 					TournamentModel.objects.get
 				)(id=self.tournament_id)
 			except TournamentModel.DoesNotExist:
+				logger.error(f'Tournament does not exist')
 				await self.close()
 				return
 
 			if tournament.status == 'finished':
+				logger.error(f'Tournament already finished')
+				await self.close()
+				return
+
+			if self.user_id not in tournament.user_ids:
+				logger.error(f'User not inside the tournament')
 				await self.close()
 				return
 

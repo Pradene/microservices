@@ -41,10 +41,17 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
 						GameModel.objects.get
 					)(id=self.game_id)
 				except GameModel.DoesNotExist:
+					logger.error(f'Game does not exist')
 					await self.close()
 					return
 
 				if game.status == 'finished':
+					logger.error(f'Game already finished')
+					await self.close()
+					return
+
+				if self.user_id not in game.user_ids:
+					logger.error(f'User not inside the game')
 					await self.close()
 					return
 

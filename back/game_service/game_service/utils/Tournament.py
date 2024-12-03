@@ -7,7 +7,7 @@ import httpx
 from datetime import timedelta
 
 from channels.db import database_sync_to_async
-from game_service.models import GameModel
+from game_service.models import GameModel, TournamentModel
 from game_service.utils import create_jwt
 
 logger = logging.getLogger(__name__)
@@ -71,7 +71,7 @@ class Tournament():
 		while len(current_users) > 1:
 			# create the games for the current round
 			logger.info(f'Create tournament round')
-			games = await self.create_round(current_users)
+			games = await self.create_round(round_number, current_users)
 			self.game_tree[round_number] = games
 			logger.info(self.game_tree)
 			await self.send_tournament_tree()
@@ -102,7 +102,7 @@ class Tournament():
 
 
 
-	async def create_round(self, users):
+	async def create_round(self, round_number, users):
 		games = []
 
 		# Create games in pairs and store game IDs
@@ -110,7 +110,10 @@ class Tournament():
 			if i + 1 < len(users):
 				game = await database_sync_to_async(
 					GameModel.objects.create
-				)(tournament_id=self.tournament_id)
+				)(
+					tournament_id=self.tournament_id,
+					tournament_round=round_number
+				)
 
 				game.user_ids = [users[i], users[i + 1]]
 				await database_sync_to_async(game.save)()
@@ -176,25 +179,30 @@ class Tournament():
 			user_info = await self.get_user(user_id)
 			if user_info:
 				users_data[user_id] = user_info
+
+		users_list = [
+			{
+				'id': user_id,
+				'username': user_data.get('username'),
+				'picture': user_data.get('picture'),
+			}
+			for user_id, user_data in users_data.items()
+		]
 				
 		for round_number, games in self.game_tree.items():
 			tree[round_number] = []
 			for game in games:
-				game_info = { "game_id": game.id }
-
-				game_info['users'] = [
-					{
-						'id': user_id,
-						'username': users_data.get(user_id).get('username'),
-						'picture': users_data.get(user_id).get('picture'),
-					} for user_id in game.user_ids
-				]
+				game_info = { 
+					"game_id": game.id,
+					"user_ids": game.user_ids
+				}
 
 				tree[round_number].append(game_info)
 
 		await self.notify_users(self.users, {
 			'type': 'tournament_info',
-			'tournament': tree
+			'tournament': tree,
+			'users': users_list
 		})
 
 
