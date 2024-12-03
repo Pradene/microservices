@@ -18,7 +18,7 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
 	channels = {}
 
 	async def connect(self):
-		self.user_id = self.scope['user_id']
+		self.user_id = self.scope.get('user_id')
 
 		if self.user_id:
 			self.type = self.scope['url_route']['kwargs']['type']
@@ -82,7 +82,7 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
 			p4_id = self.tournament_queue.popleft()
 
 			tournament.user_ids += [p1_id, p2_id, p3_id, p4_id]
-			# tournament.user_ids += [p1_id, p2_id]
+			await database_sync_to_async(tournament.save)()
 
 			await self.tournament_found(p1_id, tournament.id)
 			await self.tournament_found(p2_id, tournament.id)

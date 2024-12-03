@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class FriendsConsumer(AsyncWebsocketConsumer):
 	async def connect(self):
-		self.user_id = self.scope["user_id"]
+		self.user_id = self.scope.get("user_id")
 		logger.info(f'User {self.user_id} try to connect to friend consumer')
 
 		if self.user_id is not None:
