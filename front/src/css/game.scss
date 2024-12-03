@@ -8,12 +8,28 @@
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 100%;
+	width: 100vw;
 	height: 100vh;
+	z-index: 1;
 
 	display: flex;
+	flex-direction: column;
 	align-items: center;
-	justify-content: space-between;
+	justify-content: center;
+}
+
+.pauseDiv {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.pauseBtnDiv {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	gap: 10px;
+	margin: 10px 0px;
 }
 
 .scores {

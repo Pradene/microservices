@@ -201,21 +201,45 @@ export class Pong {
 			this.displayPlayersName(data)
 
 		} else if (data.type === 'unpause') {
+			const pauseDiv = document.getElementById("game-pause")
 
+			pauseDiv.hidden = true
 
 		} else if (data && data.status === 'paused') {
+			const pauseDiv = document.getElementById("game-pause")
+			const pauseMsg = document.getElementById("pause-msg")
+			const continueBtn = document.getElementById("continue")
+			const quitBtn = document.getElementById("quit")
+			
+			pauseMsg.textContent = `Restart in ${Math.round(data.timer)} seconds`
+			
+			pauseDiv.hidden = false
+			
+			continueBtn.onclick = () => {
+				this.unpause()
+			}
 
+			quitBtn.onclick = () => {
+				this.quit()
+			}
 
 		} else if (data && data.status === 'ready') {
 			this.timer.create(data.timer)
 
 		} else if (data && data.status === 'started') {
+			const pauseDiv = document.getElementById("game-pause")
+			pauseDiv.hidden = true
+
 			this.player.setPosition(data.player.position.x, data.player.position.y)
 			this.opponent.setPosition(data.opponent.position.x, data.opponent.position.y)
 			this.ball.setPosition(data.ball.position.x, data.ball.position.y)
 			this.displayScore(data)
 			
 		} else if (data && data.status === 'finished') {
+			const pauseDiv = document.getElementById("game-pause")
+
+			pauseDiv.hidden = true
+
 			sessionStorage.removeItem('game')
 			WSManager.remove('game')
 			

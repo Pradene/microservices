@@ -9,6 +9,13 @@
 		<h3 class="score">0</h3>
 	</div>
 </div>
+<!-- <div id="pause" hidden>
+	<span id="pauseMsg"></span>
+	<div id="pauseBtn">
+		<button id="continue">Continue</button>
+		<button id="leave">Leave Game</button>
+	</div>
+</div> -->
 <div id="result" hidden>
 	<h1 id="wol"></h1>
 	<h3 id="resmsg"></h3>
@@ -19,9 +26,14 @@
 		<button id="leave-game" class="button leave">Leave Game</button>
 	</div>
 </div>
-<!-- <div id="game-pause">
-	<button id="continue">Continue</button>
-	<button id="quit">Quit</button>
-</div> -->
+<div id="game-pause" hidden>
+	<div class="pauseDiv">
+		<span id="pause-msg"></span>
+		<div class="pauseBtnDiv">
+			<button id="continue" class="button">Continue</button>
+			<button id="quit" class="button">Quit</button>
+		</div>
+	</div>
+</div>
 
 <canvas id="canvas"></canvas>

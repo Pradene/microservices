@@ -98,8 +98,12 @@ class Game:
 					self.pause_timer = self.pause_timer - 0.1
 					if self.pause_timer <= 0:
 						self.status = 'started'
+					await self.notify_users()
 					await asyncio.sleep(0.1)
 					continue
+
+				self.pause_timer = None
+				self.pause_user_id = None
 				
 				for user_id, user in self.users.items():
 					user.move()
@@ -311,5 +315,7 @@ class Game:
 
 		if self.status == 'ready':
 			data['timer'] = self.countdown
+		elif self.status == 'paused':
+			data['timer'] = self.pause_timer
 
 		return data
