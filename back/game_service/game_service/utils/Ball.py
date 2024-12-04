@@ -13,6 +13,7 @@ class Ball:
         self.direction = generate_vector()
         self.moving = True
         self.speed = BALL_SPEED
+        self.radius = BALL_RADIUS
 
     async def reset(self, direction):
         self.position = Vector2(0, 0)

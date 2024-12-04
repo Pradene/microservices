@@ -147,7 +147,8 @@ class Game:
 
 	async def check_wall_collisions(self, start, end):
 		# Check collision with left wall
-		if line_intersection(start, end, Vector2(-400, 300), Vector2(-400, -300)):
+		if self.ball.position.x >= (400 + BALL_RADIUS * 2):
+			self.ball.position = Vector2(0, 0)
 			user = self.get_user_by_x_position((400 - 20))
 			user.score += 1
 
@@ -158,9 +159,10 @@ class Game:
 			return None
 
 		# Check collision with right wall
-		if line_intersection(start, end, Vector2(400, 300), Vector2(400, -300)):
+		if self.ball.position.x <= -(400 + BALL_RADIUS * 2):
 			user = self.get_user_by_x_position(-(400 - 20))
 			user.score += 1
+			self.ball.position = Vector2(0, 0)
 
 			if await self.check_game_finished():
 				return None
@@ -169,10 +171,10 @@ class Game:
 			return None
 		
 		# Check collision with top wall
-		if line_intersection(start, end, Vector2(-400, 300), Vector2(400, 300)):
+		if self.ball.position.y >= (300 - BALL_RADIUS):
 			return Vector2(0, 1)  # Collision normal facing down
 		# Check collision with bottom wall
-		if line_intersection(start, end, Vector2(-400, -300), Vector2(400, -300)):
+		if self.ball.position.y <= -(300 - BALL_RADIUS):
 			return Vector2(0, -1)  # Collision normal facing up
 		
 		return None
@@ -301,15 +303,22 @@ class Game:
 		opponent_id = next((uid for uid in self.users.keys() if uid != user_id), None)
 		opponent_info = self.get_user_info(opponent_id) if opponent_id is not None else None
 
+		ball_position = {
+			'x': self.ball.position.x,
+			'y': self.ball.position.y
+		}
+
+		if player_info and player_info['position']['x'] < 0:
+			opponent_info['position']['x'] = -opponent_info['position']['x']
+			player_info['position']['x'] = -player_info['position']['x']
+			ball_position['x'] = -ball_position['x']
+
 		data = {
 			'status': self.status,
 			'player': player_info,
 			'opponent': opponent_info,
 			'ball': {
-				'position': {
-					'x': self.ball.position.x,
-					'y': self.ball.position.y
-				}
+				'position': ball_position
 			}
 		}
 
